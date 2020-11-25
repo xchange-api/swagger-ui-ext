@@ -54,13 +54,13 @@ export default class ApiCollection extends Vue {
   private getChildrenThree(tagName: string) {
     const children = [];
     const paths = this.apiDoc.paths;
-    for (const key in paths) {
-      for (const reqType in paths[key]) {
-        const reqInfo = paths[key][reqType];
+    for (const reqUrl in paths) {
+      for (const reqType in paths[reqUrl]) {
+        const reqInfo = paths[reqUrl][reqType];
         if (reqInfo.tags.includes(tagName)) {
           children.push({
-            label: key,
-            reqData: new RequesterData(reqType, key)
+            label: reqUrl,
+            reqData: new RequesterData(reqType, reqUrl, reqInfo.parameters)
           });
         }
       }

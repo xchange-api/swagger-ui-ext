@@ -54,7 +54,7 @@ export default class Tabs extends Vue {
   }
 
   private addTab(title: string, name: string, content: any) {
-    // 判断是否已经存在
+    // TODO 判断是否已经存在
 
     this.tabList.push({
       title: title,
@@ -62,7 +62,6 @@ export default class Tabs extends Vue {
       content: content
     });
 
-    debugger;
     this.activeTabName = name;
   }
 
@@ -84,6 +83,11 @@ export default class Tabs extends Vue {
     this.tabList = tabs.filter(tab => tab.name !== targetName);
   }
 
+  /**
+   * 切换或添加页签
+   * @param tab 页签
+   * @param event
+   */
   private handleClick(tab: any, event: any) {
     if (tab.name === "add") {
       event.preventDefault();
