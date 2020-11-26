@@ -1,4 +1,6 @@
 export class RequesterData {
+  id!: number;
+
   type: string;
 
   url: string;
@@ -25,9 +27,6 @@ export class RequesterData {
     this.params = params;
   }
 
-  /**
-   * 格式化url
-   */
   get formatUrl(): string {
     if (this.params) {
       let params = "?";

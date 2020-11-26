@@ -7,7 +7,7 @@
       <el-button @click="clickSend">send</el-button>
     </div>
     <div>
-      <el-tabs>
+      <el-tabs v-model="activeTabName">
         <el-tab-pane label="Params" name="params">
           <el-table :data="reqData.params" style="width: 100%">
             <el-table-column prop="name" label="name" width="180">
@@ -37,6 +37,8 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import { RequesterData } from "@/type/RequesterData";
 import Response from "@/components/Response.vue";
 import { get } from "@/util/Http";
+import Bus from "@/util/Bus";
+import { BusEvent } from "@/type/BusEvent";
 
 @Component({
   components: { Response }
@@ -47,15 +49,28 @@ export default class Requester extends Vue {
 
   private response: any = "";
 
+  private activeTabName = "params";
+
   private clickSend() {
     // 组装请求数据
     const params: any = {};
-    this.reqData.params.forEach(param => (params[param.name] = param.value));
+    if (this.reqData.params) {
+      this.reqData.params.forEach(param => {
+        params[param.name] = param.value;
+      });
+    }
 
     // 发送请求 TODO 判断请求类型
-    get(this.reqData.url, { params: params }).then(
-      data => (this.response = data)
-    );
+    get(this.reqData.url, { params: params }).then(data => {
+      this.response = data;
+      this.addHistory();
+    });
+  }
+
+  private addHistory() {
+    // 修改再请求会产生新的历史 无修改请求不产生历史 TODO 重复发送判断
+    delete this.reqData.id;
+    Bus.$emit(BusEvent.ADD_HISTORY, this.reqData);
   }
 }
 </script>

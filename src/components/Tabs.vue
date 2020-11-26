@@ -40,16 +40,16 @@ import { RequesterData } from "@/type/RequesterData";
 export default class Tabs extends Vue {
   private tabList = [
     {
-      title: "xxx.com",
-      name: "xxx.com",
-      content: { type: "get", url: "xxx.com" }
+      title: "new tab",
+      name: "new tab",
+      content: { type: "get", url: "" }
     }
   ];
-  private activeTabName = this.tabList[0].title;
+  private activeTabName = this.tabList[0].name;
 
   created() {
-    Bus.$on(BusEvent.SELECT_API, (data: RequesterData) => {
-      this.addTab(data.url, data.url, data);
+    Bus.$on(BusEvent.SELECT_API, (reqData: RequesterData) => {
+      this.addTab(reqData.url, reqData.url, reqData);
     });
   }
 

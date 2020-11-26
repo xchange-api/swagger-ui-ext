@@ -11,6 +11,7 @@
     "@types/axios": "^0.14.0",
     "axios": "^0.21.0",
     "core-js": "^3.6.5",
+    "dexie": "^3.0.3",
     "element-ui": "^2.14.1",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.3",
