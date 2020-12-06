@@ -25,7 +25,9 @@
         </el-tab-pane>
         <el-tab-pane label="Authorization" name="auth"></el-tab-pane>
         <el-tab-pane label="Header" name="header"></el-tab-pane>
-        <el-tab-pane label="Body" name="body"></el-tab-pane>
+        <el-tab-pane label="Body" name="body">
+          <editor></editor>
+        </el-tab-pane>
       </el-tabs>
     </div>
     <response :response="response"></response>
@@ -36,12 +38,13 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { RequesterData } from "@/type/RequesterData";
 import Response from "@/components/Response.vue";
+import Editor from "@/components/Editor.vue";
 import { get } from "@/util/Http";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
 
 @Component({
-  components: { Response }
+  components: { Response, Editor }
 })
 export default class Requester extends Vue {
   @Prop()

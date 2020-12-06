@@ -60,7 +60,12 @@ export default class ApiCollection extends Vue {
         if (reqInfo.tags.includes(tagName)) {
           children.push({
             label: reqUrl,
-            reqData: new RequesterData(reqType, reqUrl, reqInfo.parameters)
+            reqData: new RequesterData(
+              reqType,
+              reqUrl,
+              reqInfo.parameters,
+              this.apiDoc.definitions
+            )
           });
         }
       }

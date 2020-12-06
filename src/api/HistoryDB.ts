@@ -1,10 +1,10 @@
 import Dexie from "dexie";
 import { RequesterData } from "@/type/RequesterData";
 
-class HistoryAPI extends Dexie {
+class HistoryDB extends Dexie {
   public history: Dexie.Table<RequesterData, number>;
 
-  public constructor() {
+  public constructor(dbName: string) {
     super("swagger-ui-ext");
     this.version(20201126).stores({
       // just declare index and key column
@@ -22,5 +22,5 @@ class HistoryAPI extends Dexie {
   }
 }
 
-const historyApi = new HistoryAPI();
-export default historyApi;
+const historyDB = new HistoryDB("swagger-ui-ext");
+export default historyDB;

@@ -21,10 +21,13 @@ export class RequesterData {
    */
   params: Array<any>;
 
-  constructor(type: string, url: string, params: Array<any>) {
+  definitions!: any;
+
+  constructor(type: string, url: string, params: Array<any>, definitions: any) {
     this.type = type;
     this.url = url;
     this.params = params;
+    this.definitions = definitions;
   }
 
   get formatUrl(): string {

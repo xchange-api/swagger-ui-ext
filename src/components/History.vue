@@ -9,7 +9,7 @@ import { Component, Vue } from "vue-property-decorator";
 import { RequesterData } from "@/type/RequesterData";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
-import historyApi from "@/api/HistoryAPI";
+import historyDB from "@/api/HistoryDB";
 
 @Component({
   components: {}
@@ -23,14 +23,14 @@ export default class History extends Vue {
   }
 
   private initHistory() {
-    historyApi.all().then((history: Array<RequesterData>) => {
+    historyDB.all().then((history: Array<RequesterData>) => {
       this.history = history;
     });
   }
 
   private addHistory(reqData: RequesterData) {
     this.history.push(reqData);
-    historyApi.add(reqData);
+    historyDB.add(reqData);
   }
 }
 </script>
