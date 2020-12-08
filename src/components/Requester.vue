@@ -1,7 +1,7 @@
 <template>
   <div>
     <div style="display: flex;">
-      <el-input placeholder="enter request url" v-model="reqData.formatUrl">
+      <el-input placeholder="enter request url" v-model="reqData.query">
         <template slot="prepend">{{ reqData.type }}</template>
       </el-input>
       <el-button @click="clickSend">send</el-button>
@@ -26,7 +26,7 @@
         <el-tab-pane label="Authorization" name="auth"></el-tab-pane>
         <el-tab-pane label="Header" name="header"></el-tab-pane>
         <el-tab-pane label="Body" name="body">
-          <editor></editor>
+          <editor :model="model"></editor>
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -42,6 +42,7 @@ import Editor from "@/components/Editor.vue";
 import { get } from "@/util/Http";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
+import * as monaco from "monaco-editor";
 
 @Component({
   components: { Response, Editor }
@@ -53,6 +54,14 @@ export default class Requester extends Vue {
   private response: any = "";
 
   private activeTabName = "params";
+
+  private model = monaco.editor.createModel("", "json");
+
+  created() {
+    if (this.reqData.supportBody) {
+      this.model.setValue(JSON.stringify(this.reqData.body()));
+    }
+  }
 
   private clickSend() {
     // 组装请求数据
