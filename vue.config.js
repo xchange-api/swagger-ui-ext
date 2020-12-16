@@ -2,7 +2,7 @@ const MonacoEditorWebpackPlugin = require("monaco-editor-webpack-plugin");
 
 module.exports = {
   devServer: {
-    proxy: "http://localhost:8082",
+    proxy: "http://localhost:8086",
     port: 8080
   },
 

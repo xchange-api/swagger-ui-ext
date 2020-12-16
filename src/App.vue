@@ -4,8 +4,8 @@
       <el-header><div></div></el-header>
       <el-container>
         <!--left side api collection and history-->
-        <el-aside width="320px">
-          <el-tabs v-model="activeTabName">
+        <el-aside width="320px" class="aside-box">
+          <el-tabs v-model="activeTabName" class="tabs-list">
             <el-tab-pane label="api collection" name="apiCollection">
               <api-collection />
             </el-tab-pane>
@@ -15,7 +15,7 @@
           </el-tabs>
         </el-aside>
         <!--main page-->
-        <el-main><tabs /></el-main>
+        <el-main class="main-box"><tabs /></el-main>
       </el-container>
     </el-container>
   </div>
@@ -39,4 +39,19 @@ export default class App extends Vue {
 }
 </script>
 
-<style></style>
+<style lang="scss" scoped>
+    $height:calc(100vh - 76px);
+    .aside-box{
+        width: 320px;
+        height: $height;
+        .tabs-list{
+            .el-tabs__content{
+                height: calc(100vh - 130px);
+                overflow: auto;
+            }
+        }
+    }
+    .main-box{
+        height: $height;
+    }
+</style>>
