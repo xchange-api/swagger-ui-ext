@@ -74,6 +74,8 @@ export default class ApiCollection extends Vue {
   }
 
   private clickNode(data: any, node: any, obj: any) {
+      console.log(data,'datadata');
+      
     if (node.level === 2) {
       Bus.$emit(BusEvent.SELECT_API, data.reqData);
     }
@@ -81,4 +83,5 @@ export default class ApiCollection extends Vue {
 }
 </script>
 
-<style></style>
+<style lang="scss" scoped>
+</style>
