@@ -1,6 +1,21 @@
 <template>
   <div>
-    <el-tree :data="apiThree" @node-click="clickNode"></el-tree>
+    <el-tree
+      :data="apiThree"
+      @node-click="clickNode"
+      @node-contextmenu="menu"
+    ></el-tree>
+    <div
+      id="perTreeMenu"
+      v-if="tmDisplay"
+      class="tree_menu"
+      :style="{ ...rightMenu }"
+    >
+      <ul>
+        <li><i class="el-icon-tickets"></i> 详情</li>
+        <li><i class="el-icon-edit"></i> 编辑</li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -17,9 +32,20 @@ import { RequesterData } from "@/type/RequesterData";
 export default class ApiCollection extends Vue {
   private apiDoc!: any;
   private apiThree: Array<any> = [];
+  private rightMenu = { top: "0px", left: "0px" };
+  private tmDisplay = false;
 
   created() {
     this.initApiDoc();
+  }
+
+  mounted() {
+    const that = this;
+    document.onclick = function(ev) {
+      if (ev.target !== document.getElementById("perTreeMenu")) {
+        that.tmDisplay = false;
+      }
+    };
   }
 
   private initApiDoc() {
@@ -74,14 +100,46 @@ export default class ApiCollection extends Vue {
   }
 
   private clickNode(data: any, node: any, obj: any) {
-      console.log(data,'datadata');
-      
     if (node.level === 2) {
       Bus.$emit(BusEvent.SELECT_API, data.reqData);
+    }
+  }
+
+  private menu(e: MouseEvent, data: any, node: any, obj: any) {
+    if (node.level === 2) {
+      console.log("e:", e, "data", data);
+      this.rightMenu = { top: e.pageY + "px", left: e.pageX + "px" };
+      this.tmDisplay = true;
     }
   }
 }
 </script>
 
 <style lang="scss" scoped>
+.tree_menu {
+  position: fixed;
+  display: block;
+  z-index: 20000;
+  background-color: #fff;
+  padding: 5px 0;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+
+  ul {
+    margin: 0;
+    padding: 0;
+  }
+  ul li {
+    list-style: none;
+    margin: 0;
+    padding: 0 15px;
+    font-size: 14px;
+    line-height: 30px;
+    cursor: pointer;
+  }
+  ul li:hover {
+    background-color: #ebeef5;
+  }
+}
 </style>

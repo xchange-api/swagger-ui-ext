@@ -40,18 +40,18 @@ export default class App extends Vue {
 </script>
 
 <style lang="scss" scoped>
-    $height:calc(100vh - 76px);
-    .aside-box{
-        width: 320px;
-        height: $height;
-        .tabs-list{
-            .el-tabs__content{
-                height: calc(100vh - 130px);
-                overflow: auto;
-            }
-        }
+$height: calc(100vh - 76px);
+.aside-box {
+  width: 320px;
+  height: $height;
+  .tabs-list {
+    .el-tabs__content {
+      height: calc(100vh - 130px);
+      overflow: auto;
     }
-    .main-box{
-        height: $height;
-    }
-</style>>
+  }
+}
+.main-box {
+  height: $height;
+}</style
+>>

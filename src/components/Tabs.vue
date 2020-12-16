@@ -1,7 +1,7 @@
 <template>
   <div class="tabs">
     <el-tabs
-        v-if="tabList.length>0"
+      v-if="tabList.length > 0"
       v-model="activeTabName"
       type="card"
       @tab-click="handleClick"
@@ -24,7 +24,7 @@
       ></el-tab-pane> -->
     </el-tabs>
     <div v-else class="home-box">
-        <div class="home-content"><h1>Welcome out World</h1></div>
+      <div class="home-content"><h1>Welcome out World</h1></div>
     </div>
   </div>
 </template>
@@ -42,30 +42,31 @@ import { RequesterData } from "@/type/RequesterData";
   }
 })
 export default class Tabs extends Vue {
-//   private tabList = [
-//     {
-//       title: "new tab",
-//       name: "new tab",
-//       content: { type: "get", url: "" }
-//     }
-//   ];
-    private tabList : Array<any> =[];
-  private activeTabName :any = "" ;
+  private tabList: Array<any> = [];
+  private activeTabName: any = "";
 
   created() {
     Bus.$on(BusEvent.SELECT_API, (reqData: RequesterData) => {
       this.addTab(reqData.url, reqData.url, reqData);
     });
   }
-  private addTab(title: string, name: string, content: any) {
-    // TODO 判断是否已经存在
-    if(!this.tabList.some(e=>e.title === title))//去除重复
-    this.tabList.push({
-      title: title,
-      name: name,
-      content: content
-    });
-    this.activeTabName = name;
+
+  private addTab(title: string, name: string, content: any, addAnyway = false) {
+    const tab = this.tabList.find(value => value.name === name);
+    let tabName = name;
+    if (addAnyway && tab) {
+      tabName += Math.round(Math.random() * 1000);
+    }
+
+    if (!tab || addAnyway) {
+      this.tabList.push({
+        title: title,
+        name: tabName,
+        content: content
+      });
+    }
+
+    this.activeTabName = tabName;
   }
 
   private removeTab(targetName: string) {
@@ -101,20 +102,19 @@ export default class Tabs extends Vue {
 </script>
 
 <style lang="scss" scoped>
-.tabs{
+.tabs {
+  width: 100%;
+  height: 100%;
+  .home-box {
     width: 100%;
     height: 100%;
-    .home-box{
-        width: 100%;
-        height: 100%;
-        .home-content{
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    .home-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+  }
 }
-
-</style>>
+</style>
