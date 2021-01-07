@@ -19,24 +19,39 @@ export class RequesterData {
                       "type": "string"
                   }]
      */
-  parameters: Array<any>;
+  parameters: Array<Parameter>;
 
   definitions!: any;
+
+  consumes!: Array<string>;
+
+  produces!: Array<string>;
+
+  body!: any;
 
   constructor(
     type: string,
     url: string,
-    parameters: Array<any>,
+    parameters: Array<Parameter>,
     definitions: any
   ) {
     this.type = type;
     this.url = url;
     this.parameters = parameters;
     this.definitions = definitions;
+    this.init();
   }
+
+  private init() {
+    this.parameters = this.parameters || [];
+    for (const parameter of this.parameters) {
+      parameter.value = parameter.value || undefined;
+    }
+  }
+
   get query(): string {
     const params = this.params;
-    if (!params || params.length < 1) {
+    if (params.length < 1) {
       return this.url;
     }
     let query = "?";
@@ -53,26 +68,47 @@ export class RequesterData {
     return this.url + query;
   }
 
+  set query(val: string) {
+    const indexOf = val.indexOf("?");
+    if (indexOf < 0) {
+      return;
+    }
+    const query: any = {};
+    val
+      .substring(indexOf + 1)
+      .split("&")
+      .forEach(value => {
+        const kv = value.split("=");
+        query[kv[0]] = kv[1];
+      });
+    for (const param of this.params) {
+      param.value = query[param.name];
+    }
+  }
+
   get supportBody() {
     return !["get", "head"].includes(this.type);
   }
 
-  get params() {
-    return this.parameters.filter(param => param.in === "query");
+  get params(): Array<Parameter> {
+    return this.parameters?.filter(param => param.in === "query") || [];
   }
 
-  public body() {
+  /**
+   * 生产requestBody样例
+   */
+  public bodyExample() {
     let bodyExample;
     for (const parameter of this.parameters) {
       if (parameter.in !== "body") {
         continue;
       }
-      bodyExample = this.bodyExample(parameter.schema);
+      bodyExample = this.bodyJSONExample(parameter.schema);
     }
     return bodyExample;
   }
 
-  private bodyExample(schema: any) {
+  private bodyJSONExample(schema: Schema) {
     const type: string = schema.type;
     const format = schema.format;
     const properties = schema.properties;
@@ -98,13 +134,13 @@ export class RequesterData {
     } else if (type === "array") {
       isArray = true;
       if (schema.items) {
-        str = this.bodyExample(schema.items);
+        str = this.bodyJSONExample(schema.items);
       }
     } else if (type === "object") {
       str = {};
       if (properties) {
         for (const property in properties) {
-          str[property] = this.bodyExample(properties[property]);
+          str[property] = this.bodyJSONExample(properties[property]);
         }
       }
     }
@@ -122,6 +158,24 @@ export class RequesterData {
 
   private refExample(ref: string) {
     const refName = ref.replace("#/definitions/", "");
-    return this.bodyExample(this.definitions[refName]);
+    return this.bodyJSONExample(this.definitions[refName]);
   }
+}
+
+interface Schema {
+  type: string;
+  format: string;
+  $ref: string;
+  properties: { [key: string]: Schema };
+  items: Schema;
+}
+
+interface Parameter {
+  name: string;
+  value: any;
+  in: "body" | "query" | "formData" | "path";
+  description: string;
+  required: boolean;
+  schema: Schema;
+  type: string;
 }

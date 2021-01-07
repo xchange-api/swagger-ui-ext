@@ -1,11 +1,7 @@
 <template>
   <div>
     <div style="display: flex;">
-      <el-input
-        placeholder="enter request url"
-        @input="elInput"
-        :value="reqData.query"
-      >
+      <el-input placeholder="enter request url" v-model="reqData.query">
         <template slot="prepend">{{ reqData.type }}</template>
       </el-input>
       <el-button @click="clickSend">send</el-button>
@@ -28,7 +24,7 @@
           </el-table>
         </el-tab-pane>
         <el-tab-pane label="Authorization" name="auth">
-          <authorizatuion />
+          <authorization />
         </el-tab-pane>
         <el-tab-pane label="Header" name="header"></el-tab-pane>
         <el-tab-pane label="Body" name="body">
@@ -45,20 +41,20 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import { RequesterData } from "@/type/RequesterData";
 import Response from "@/components/Response.vue";
 import Editor from "@/components/Editor.vue";
-import authorizatuion from "@/components/authorizatuion.vue";
-import { get } from "@/util/Http";
+import Authorization from "@/components/Authorization.vue";
+import { request } from "@/util/Http";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
 import * as monaco from "monaco-editor";
+import { formatJson, isJson } from "@/util/TextUtil";
 
 @Component({
-  components: { Response, Editor, authorizatuion }
+  components: { Response, Editor, Authorization }
 })
 export default class Requester extends Vue {
   @Prop()
   private reqData!: RequesterData;
 
-  private sendAuthorization: any = "";
   private response: any = "";
 
   private activeTabName = "params";
@@ -67,25 +63,17 @@ export default class Requester extends Vue {
 
   created() {
     if (this.reqData.supportBody) {
-      this.model.setValue(JSON.stringify(this.reqData.body()));
+      this.model.setValue(formatJson(this.reqData.bodyExample()));
     }
   }
 
-  private elInput(val: any) {
-    console.log(val);
-  }
   private clickSend() {
-    // 组装请求数据
-    const params: any = {};
-    if (this.reqData.params) {
-      this.reqData.params.forEach(param => {
-        params[param.name] = param.value;
-      });
+    const bodyJson = isJson(this.model.getValue());
+    if (bodyJson) {
+      this.reqData.body = bodyJson;
     }
-
-    // 发送请求 TODO 判断请求类型
-    get(this.reqData.url, { params: params }).then(data => {
-      this.response = data;
+    request(this.reqData).then(res => {
+      this.response = res.data;
       this.addHistory();
     });
   }

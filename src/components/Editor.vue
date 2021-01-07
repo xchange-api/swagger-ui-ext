@@ -28,7 +28,6 @@ export default class Editor extends Vue {
       minimap: { enabled: false },
       automaticLayout: true // 当加载时被挂载的元素不可见时, monaco editor会设置为隐藏, 被挂载元素变为可见时不会自动更新为可见
     });
-    this.editor.trigger(undefined, "editor.action.formatDocument", undefined);
 
     this.editor.addAction({
       id: "Full screen",

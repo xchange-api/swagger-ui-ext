@@ -41,8 +41,8 @@ export default class ApiCollection extends Vue {
 
   mounted() {
     const that = this;
-    document.onclick = function(ev) {
-      if (ev.target !== document.getElementById("perTreeMenu")) {
+    document.onclick = function(event) {
+      if (event.target !== document.getElementById("perTreeMenu")) {
         that.tmDisplay = false;
       }
     };
@@ -99,15 +99,14 @@ export default class ApiCollection extends Vue {
     return children;
   }
 
-  private clickNode(data: any, node: any, obj: any) {
+  private clickNode(data: any, node: any) {
     if (node.level === 2) {
       Bus.$emit(BusEvent.SELECT_API, data.reqData);
     }
   }
 
-  private menu(e: MouseEvent, data: any, node: any, obj: any) {
+  private menu(e: MouseEvent, data: any, node: any) {
     if (node.level === 2) {
-      console.log("e:", e, "data", data);
       this.rightMenu = { top: e.pageY + "px", left: e.pageX + "px" };
       this.tmDisplay = true;
     }

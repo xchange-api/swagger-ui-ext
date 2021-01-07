@@ -1,6 +1,7 @@
-import axios from "axios";
+import axios, { AxiosRequestConfig, Method, AxiosResponse } from "axios";
+import { RequesterData } from "@/type/RequesterData";
 
-export function get(url: string, params: any) {
+export function get(url: string, params: { [key: string]: any }) {
   return new Promise((resolve, reject) => {
     axios
       .get(url, params)
@@ -13,15 +14,28 @@ export function get(url: string, params: any) {
   });
 }
 
-export function post(url: string, params: any) {
+function toRequestConfig(reqData: RequesterData): AxiosRequestConfig {
+  return {
+    url: reqData.url,
+    method: reqData.type as Method,
+    params: reqData.params.reduce((pre: any, cur) => {
+      pre[cur.name] = cur.value;
+      return pre;
+    }, {}),
+    data: reqData.body,
+    responseType: "arraybuffer"
+  };
+}
+
+export function request(reqData: RequesterData): Promise<AxiosResponse> {
   return new Promise((resolve, reject) => {
     axios
-      .post(url, params)
+      .request(toRequestConfig(reqData))
       .then(res => {
-        resolve(res.data);
+        resolve(res);
       })
       .catch(err => {
-        reject(err.data);
+        reject(err);
       });
   });
 }

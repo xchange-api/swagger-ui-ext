@@ -8,6 +8,8 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import * as monaco from "monaco-editor";
+import { fromBuffer } from "file-type";
+import { formatJson, isHtml, isJson, isXml } from "@/util/TextUtil";
 
 @Component({
   components: {}
@@ -21,11 +23,31 @@ export default class Response extends Vue {
   private editor!: monaco.editor.IStandaloneCodeEditor;
 
   @Watch("response", { immediate: false, deep: true })
-  responseChange(curVal: any) {
-    this.model = monaco.editor.createModel(
-      JSON.stringify(curVal, null, "\t"),
-      "json"
-    );
+  responseChange(curVal: ArrayBuffer) {
+    fromBuffer(curVal).then(type => {
+      if (type) {
+        // TODO 按类型显示
+      } else {
+        const resBodyText = new TextDecoder().decode(curVal);
+        const json = isJson(resBodyText);
+        if (json) {
+          this.setEditorValue(formatJson(json), "json");
+        } else if (isHtml(resBodyText)) {
+          this.setEditorValue(resBodyText, "html");
+        } else if (isXml(resBodyText)) {
+          this.setEditorValue(resBodyText, "xml");
+        }
+      }
+    });
+  }
+
+  /**
+   * 设置编辑器内容
+   * @param value
+   * @param language
+   */
+  private setEditorValue(value: string, language: string) {
+    this.model = monaco.editor.createModel(value, language);
     const element = this.$refs.editorContainer as HTMLElement;
     this.editor = monaco.editor.create(element, {
       model: this.model,
