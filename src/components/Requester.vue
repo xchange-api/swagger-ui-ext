@@ -32,7 +32,7 @@
         </el-tab-pane>
       </el-tabs>
     </div>
-    <response :response="response"></response>
+    <response :response="response" :headers="headers"></response>
   </div>
 </template>
 
@@ -61,9 +61,11 @@ export default class Requester extends Vue {
 
   private model = monaco.editor.createModel("", "json");
 
+  private headers: any = "";
+
   created() {
     if (this.reqData.supportBody) {
-      this.model.setValue(formatJson(this.reqData.bodyExample()));
+      this.model.setValue(formatJson(this.reqData.bodyExample()) || "");
     }
   }
 
@@ -72,15 +74,15 @@ export default class Requester extends Vue {
     if (bodyJson) {
       this.reqData.body = bodyJson;
     }
+    debugger;
     request(this.reqData).then(res => {
+      this.headers = res.headers;
       this.response = res.data;
       this.addHistory();
     });
   }
 
   private addHistory() {
-    // 修改再请求会产生新的历史 无修改请求不产生历史 TODO 重复发送判断
-    delete this.reqData.id;
     Bus.$emit(BusEvent.ADD_HISTORY, this.reqData);
   }
 }

@@ -5,20 +5,6 @@ export class RequesterData {
 
   url: string;
 
-  /**
-     * [{
-                      "name": "userId",
-                      "in": "query",
-                      "required": false,
-                      "type": "integer",
-                      "format": "int64"
-                  }, {
-                      "name": "username",
-                      "in": "query",
-                      "required": false,
-                      "type": "string"
-                  }]
-     */
   parameters: Array<Parameter>;
 
   definitions!: any;
@@ -29,12 +15,7 @@ export class RequesterData {
 
   body!: any;
 
-  constructor(
-    type: string,
-    url: string,
-    parameters: Array<Parameter>,
-    definitions: any
-  ) {
+  constructor(type: string, url: string, parameters: Array<Parameter>, definitions: any) {
     this.type = type;
     this.url = url;
     this.parameters = parameters;
@@ -87,11 +68,28 @@ export class RequesterData {
   }
 
   get supportBody() {
-    return !["get", "head"].includes(this.type);
+    return !["get", "head"].includes(this.type) && this.bodys.length > 0;
   }
 
   get params(): Array<Parameter> {
     return this.parameters?.filter(param => param.in === "query") || [];
+  }
+
+  get bodys() {
+    return this.parameters?.filter(param => param.in === "body") || [];
+  }
+
+  /**
+   * hashId避免添加相同的历史记录
+   */
+  public hashId() {
+    const str = this.url + this.type + JSON.stringify(this.parameters) + JSON.stringify(this.body);
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;
+    }
+    this.id = hash;
+    return this.id;
   }
 
   /**
@@ -178,4 +176,5 @@ interface Parameter {
   required: boolean;
   schema: Schema;
   type: string;
+  items: Schema;
 }

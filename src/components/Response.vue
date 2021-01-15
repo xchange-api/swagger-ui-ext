@@ -1,7 +1,14 @@
 <!---->
 <template>
   <div>
-    <div ref="editorContainer" style="height: 500px; width: 100%"></div>
+    <el-tabs v-model="activeTabName">
+      <el-tab-pane label="Body" name="body">
+        <div ref="editorContainer" style="height: 500px; width: 100%"></div>
+      </el-tab-pane>
+      <el-tab-pane label="Header" name="header">
+        <li v-for="(value, key) in headers" :key="key">{{ key }}: {{ value }}</li>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
@@ -21,6 +28,11 @@ export default class Response extends Vue {
   private model!: monaco.editor.ITextModel;
 
   private editor!: monaco.editor.IStandaloneCodeEditor;
+
+  @Prop()
+  private headers: any = "";
+
+  private activeTabName = "body";
 
   @Watch("response", { immediate: false, deep: true })
   responseChange(curVal: ArrayBuffer) {

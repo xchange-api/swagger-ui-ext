@@ -29,8 +29,11 @@ export default class History extends Vue {
   }
 
   private addHistory(reqData: RequesterData) {
-    this.history.push(reqData);
-    historyDB.add(reqData);
+    const history = this.history.find(h => h.id === reqData.hashId());
+    if (!history) {
+      this.history.push(reqData);
+      historyDB.add(reqData);
+    }
   }
 }
 </script>
