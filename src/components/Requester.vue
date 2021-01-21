@@ -9,7 +9,7 @@
     <div>
       <el-tabs v-model="activeTabName">
         <el-tab-pane label="Params" name="params">
-          <el-table :data="reqData.params" style="width: 100%">
+          <el-table :data="reqData.params('query', 'formData')" style="width: 100%">
             <el-table-column prop="name" label="name" width="180">
               <template slot-scope="scope">
                 <el-input v-model="scope.row.name"></el-input>
@@ -17,7 +17,13 @@
             </el-table-column>
             <el-table-column prop="value" label="value" width="180">
               <template slot-scope="scope">
-                <el-input v-model="scope.row.value"></el-input>
+                <input
+                  v-if="scope.row.fileType === 'file' || scope.row.fileType === 'files'"
+                  type="file"
+                  :multiple="scope.row.fileType === 'files'"
+                  @change="selectFile(scope.row, $event)"
+                />
+                <el-input v-else v-model="scope.row.value"></el-input>
               </template>
             </el-table-column>
             <el-table-column prop="type" label="description"></el-table-column>
@@ -28,7 +34,7 @@
         </el-tab-pane>
         <el-tab-pane label="Header" name="header"></el-tab-pane>
         <el-tab-pane label="Body" name="body">
-          <editor :model="model"></editor>
+          <editor :value.sync="reqData.bodyStr" :language="language"></editor>
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -38,15 +44,13 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { RequesterData } from "@/type/RequesterData";
+import { Parameter, RequesterData } from "@/type/RequesterData";
 import Response from "@/components/Response.vue";
 import Editor from "@/components/Editor.vue";
 import Authorization from "@/components/Authorization.vue";
 import { request } from "@/util/Http";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
-import * as monaco from "monaco-editor";
-import { formatJson, isJson } from "@/util/TextUtil";
 
 @Component({
   components: { Response, Editor, Authorization }
@@ -59,22 +63,11 @@ export default class Requester extends Vue {
 
   private activeTabName = "params";
 
-  private model = monaco.editor.createModel("", "json");
+  private language = "json";
 
   private headers: any = "";
 
-  created() {
-    if (this.reqData.supportBody) {
-      this.model.setValue(formatJson(this.reqData.bodyExample()) || "");
-    }
-  }
-
   private clickSend() {
-    const bodyJson = isJson(this.model.getValue());
-    if (bodyJson) {
-      this.reqData.body = bodyJson;
-    }
-    debugger;
     request(this.reqData).then(res => {
       this.headers = res.headers;
       this.response = res.data;
@@ -84,6 +77,10 @@ export default class Requester extends Vue {
 
   private addHistory() {
     Bus.$emit(BusEvent.ADD_HISTORY, this.reqData);
+  }
+
+  private selectFile(param: Parameter, event: any) {
+    param.value = event.target.files;
   }
 }
 </script>

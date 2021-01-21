@@ -16,7 +16,7 @@
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import * as monaco from "monaco-editor";
 import { fromBuffer } from "file-type";
-import { formatJson, isHtml, isJson, isXml } from "@/util/TextUtil";
+import { PrettierFactory } from "@/util/PrettierFactory";
 
 @Component({
   components: {}
@@ -35,20 +35,14 @@ export default class Response extends Vue {
   private activeTabName = "body";
 
   @Watch("response", { immediate: false, deep: true })
-  responseChange(curVal: ArrayBuffer) {
-    fromBuffer(curVal).then(type => {
+  responseChange(newResponse: ArrayBuffer) {
+    fromBuffer(newResponse).then(type => {
       if (type) {
         // TODO 按类型显示
       } else {
-        const resBodyText = new TextDecoder().decode(curVal);
-        const json = isJson(resBodyText);
-        if (json) {
-          this.setEditorValue(formatJson(json), "json");
-        } else if (isHtml(resBodyText)) {
-          this.setEditorValue(resBodyText, "html");
-        } else if (isXml(resBodyText)) {
-          this.setEditorValue(resBodyText, "xml");
-        }
+        const resBodyText = new TextDecoder().decode(newResponse);
+        const prettier = PrettierFactory.getPrettier(resBodyText);
+        this.setEditorValue(prettier.pretty(), prettier.type);
       }
     });
   }

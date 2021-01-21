@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import * as monaco from "monaco-editor";
 
 @Component({
@@ -13,6 +13,11 @@ import * as monaco from "monaco-editor";
 })
 export default class Editor extends Vue {
   @Prop()
+  private value!: string;
+
+  @Prop()
+  private language = "json";
+
   private model!: monaco.editor.ITextModel;
 
   private editor!: monaco.editor.IStandaloneCodeEditor;
@@ -23,6 +28,7 @@ export default class Editor extends Vue {
 
   private init() {
     const element = this.$refs.editorContainer as HTMLElement;
+    this.model = monaco.editor.createModel(this.value, this.language);
     this.editor = monaco.editor.create(element, {
       model: this.model,
       minimap: { enabled: false },
@@ -37,6 +43,15 @@ export default class Editor extends Vue {
         console.log("");
       }
     });
+
+    this.model.onDidChangeContent(() => {
+      this.$emit("update:value", this.model.getValue());
+    });
+  }
+
+  @Watch("language", { immediate: false, deep: true })
+  private languageChange(newLanguage: string) {
+    monaco.editor.setModelLanguage(this.model, newLanguage);
   }
 }
 </script>

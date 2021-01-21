@@ -1,3 +1,5 @@
+import { isJSON } from "@/util/TextUtil";
+
 export class RequesterData {
   id!: number;
 
@@ -27,11 +29,21 @@ export class RequesterData {
     this.parameters = this.parameters || [];
     for (const parameter of this.parameters) {
       parameter.value = parameter.value || undefined;
+      if (parameter.in !== InType.FORM_DATA) {
+        continue;
+      }
+      Object.defineProperties(parameter, {
+        fileType: {
+          get(): string {
+            return this.items?.type === "file" ? FileType.FILES : this.type === "file" ? FileType.FILE : FileType.NONE;
+          }
+        }
+      });
     }
   }
 
   get query(): string {
-    const params = this.params;
+    const params = this.params(InType.QUERY);
     if (params.length < 1) {
       return this.url;
     }
@@ -62,21 +74,35 @@ export class RequesterData {
         const kv = value.split("=");
         query[kv[0]] = kv[1];
       });
-    for (const param of this.params) {
+    for (const param of this.params(InType.QUERY)) {
       param.value = query[param.name];
     }
   }
 
-  get supportBody() {
-    return !["get", "head"].includes(this.type) && this.bodys.length > 0;
+  get bodyStr() {
+    if (!this.containBody()) {
+      return "";
+    }
+    return JSON.stringify(this.bodyExample());
   }
 
-  get params(): Array<Parameter> {
-    return this.parameters?.filter(param => param.in === "query") || [];
+  set bodyStr(value: string) {
+    const json = isJSON(value);
+    if (json) {
+      this.body = json;
+    }
   }
 
-  get bodys() {
-    return this.parameters?.filter(param => param.in === "body") || [];
+  public supportBody(): boolean {
+    return !["get", "head"].includes(this.type);
+  }
+
+  public containBody(): boolean {
+    return this.params(InType.BODY).length > 0;
+  }
+
+  public params(...inTypes: InType[]): Array<Parameter> {
+    return this.parameters?.filter(param => (inTypes || []).includes(param.in)) || [];
   }
 
   /**
@@ -168,13 +194,26 @@ interface Schema {
   items: Schema;
 }
 
-interface Parameter {
+export interface Parameter {
   name: string;
   value: any;
-  in: "body" | "query" | "formData" | "path";
+  in: InType.BODY | InType.QUERY | InType.FORM_DATA | InType.PATH;
   description: string;
   required: boolean;
   schema: Schema;
   type: string;
   items: Schema;
+}
+
+export enum InType {
+  BODY = "body",
+  QUERY = "query",
+  FORM_DATA = "formData",
+  PATH = "path"
+}
+
+export enum FileType {
+  NONE = "none",
+  FILE = "file",
+  FILES = "files"
 }

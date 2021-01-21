@@ -10,6 +10,7 @@
   "dependencies": {
     "@types/axios": "^0.14.0",
     "@types/file-type": "^10.9.1",
+    "@types/vkbeautify": "^0.99.2",
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
     "dexie": "^3.0.3",
@@ -17,6 +18,7 @@
     "file-type": "^16.1.0",
     "monaco-editor": "^0.21.2",
     "monaco-editor-webpack-plugin": "^2.0.0",
+    "vkbeautify": "^0.99.3",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.3",
     "vue-property-decorator": "^8.4.2"
