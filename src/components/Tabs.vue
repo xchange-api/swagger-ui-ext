@@ -1,26 +1,10 @@
 <template>
   <div class="tabs">
-    <el-tabs
-      v-model="activeTabName"
-      type="card"
-      @tab-click="handleClick"
-      @tab-remove="removeTab"
-    >
-      <el-tab-pane
-        v-for="item in tabList"
-        :key="item.name"
-        :label="item.title"
-        :name="item.name"
-        :closable="true"
-      >
+    <el-tabs v-model="activeTabName" type="card" @tab-click="handleClick" @tab-remove="removeTab">
+      <el-tab-pane v-for="item in tabList" :key="item.name" :label="item.title" :name="item.name" :closable="true">
         <requester :req-data="item.content"></requester>
       </el-tab-pane>
-      <el-tab-pane
-        key="add"
-        name="add"
-        :closable="false"
-        label="+"
-      ></el-tab-pane>
+      <el-tab-pane key="add" name="add" :closable="false" label="+"></el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -61,12 +45,7 @@ export default class Tabs extends Vue {
    * @param content
    * @param newTab
    */
-  private addTab(
-    title: string,
-    name: string,
-    content: RequesterData,
-    newTab = false
-  ) {
+  private addTab(title: string, name: string, content: RequesterData, newTab = false) {
     // 存在同名的tab
     let tabName = name;
     if (this.tabList.find(value => value.name === name)) {
@@ -82,9 +61,7 @@ export default class Tabs extends Vue {
       });
     } else {
       // 替换当前的tab
-      const activeTab = this.tabList.find(
-        value => value.name === this.activeTabName
-      );
+      const activeTab = this.tabList.find(value => value.name === this.activeTabName);
       if (activeTab) {
         activeTab.title = title;
         activeTab.name = tabName;
@@ -124,12 +101,7 @@ export default class Tabs extends Vue {
   private handleClick(tab: any, event: MouseEvent) {
     if (tab.name === "add") {
       event.preventDefault();
-      this.addTab(
-        "addTab",
-        "addTab",
-        new RequesterData("get", "", [], {}),
-        true
-      );
+      this.addTab("addTab", "addTab", new RequesterData("get", "", [], {}), true);
     }
   }
 }

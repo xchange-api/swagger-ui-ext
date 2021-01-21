@@ -35,6 +35,7 @@ export class RequesterData {
       Object.defineProperties(parameter, {
         fileType: {
           get(): string {
+            // 文件上传类型
             return this.items?.type === "file" ? FileType.FILES : this.type === "file" ? FileType.FILE : FileType.NONE;
           }
         }
@@ -119,7 +120,7 @@ export class RequesterData {
   }
 
   /**
-   * 生产requestBody样例
+   * 生成requestBody样例
    */
   public bodyExample() {
     let bodyExample;
@@ -132,6 +133,9 @@ export class RequesterData {
     return bodyExample;
   }
 
+  /**
+   * 生成schema样例
+   */
   private bodyJSONExample(schema: Schema) {
     const type: string = schema.type;
     const format = schema.format;

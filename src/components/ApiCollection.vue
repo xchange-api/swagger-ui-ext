@@ -1,16 +1,7 @@
 <template>
   <div>
-    <el-tree
-      :data="apiThree"
-      @node-click="clickNode"
-      @node-contextmenu="menu"
-    ></el-tree>
-    <div
-      id="perTreeMenu"
-      v-if="tmDisplay"
-      class="tree_menu"
-      :style="{ ...rightMenu }"
-    >
+    <el-tree :data="apiThree" @node-click="clickNode" @node-contextmenu="menu"></el-tree>
+    <div id="perTreeMenu" v-if="tmDisplay" class="tree_menu" :style="{ ...rightMenu }">
       <ul>
         <li><i class="el-icon-tickets"></i> 详情</li>
         <li><i class="el-icon-edit"></i> 编辑</li>
@@ -86,12 +77,7 @@ export default class ApiCollection extends Vue {
         if (reqInfo.tags.includes(tagName)) {
           children.push({
             label: reqUrl,
-            reqData: new RequesterData(
-              reqType,
-              reqUrl,
-              reqInfo.parameters,
-              this.apiDoc.definitions
-            )
+            reqData: new RequesterData(reqType, reqUrl, reqInfo.parameters, this.apiDoc.definitions)
           });
         }
       }

@@ -14,7 +14,7 @@ export function get(url: string, params: { [key: string]: any }) {
   });
 }
 
-function toRequestConfig(reqData: RequesterData): AxiosRequestConfig {
+function buildRequestConfig(reqData: RequesterData): AxiosRequestConfig {
   return {
     url: reqData.url,
     method: reqData.type as Method,
@@ -30,7 +30,7 @@ function toRequestConfig(reqData: RequesterData): AxiosRequestConfig {
 export function request(reqData: RequesterData): Promise<AxiosResponse> {
   return new Promise((resolve, reject) => {
     axios
-      .request(toRequestConfig(reqData))
+      .request(buildRequestConfig(reqData))
       .then(res => {
         resolve(res);
       })
@@ -41,7 +41,7 @@ export function request(reqData: RequesterData): Promise<AxiosResponse> {
 }
 
 /**
- * 生产formData, 上传文件
+ * 创建formData
  * @param reqData
  */
 function buildFormData(reqData: RequesterData): FormData | undefined {
