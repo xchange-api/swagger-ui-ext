@@ -1,9 +1,9 @@
 <!---->
 <template>
   <div>
-    <el-tabs v-model="activeTabName">
+    <el-tabs v-model="activeTabName" type="border-card">
       <el-tab-pane label="Body" name="body">
-        <div ref="editorContainer" style="height: 500px; width: 100%"></div>
+        <div ref="editorContainer"></div>
       </el-tab-pane>
       <el-tab-pane label="Header" name="header">
         <li v-for="(value, key) in headers" :key="key">{{ key }}: {{ value }}</li>

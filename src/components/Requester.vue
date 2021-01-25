@@ -42,11 +42,13 @@
         <el-tab-pane label="Body" name="body">
           <editor :value.sync="reqData.bodyStr" :language="language"></editor>
         </el-tab-pane>
+        <!--http response start-->
+        <el-tab-pane label="Response" name="response">
+          <response :response="response" :headers="headers"></response>
+        </el-tab-pane>
+        <!--http response end-->
       </el-tabs>
     </div>
-
-    <!--http response-->
-    <response :response="response" :headers="headers"></response>
   </div>
 </template>
 
@@ -79,6 +81,7 @@ export default class Requester extends Vue {
     request(this.reqData).then(res => {
       this.headers = res.headers;
       this.response = res.data;
+      this.activeTabName = "response";
       this.addHistory();
     });
   }

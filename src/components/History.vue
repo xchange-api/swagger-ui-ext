@@ -1,6 +1,8 @@
 <template>
-  <div>
-    <li v-for="item in history" :key="item.url + item.id">{{ item.url }}</li>
+  <div class="history">
+    <ul>
+      <li v-for="item in history" :key="item.url + item.id" @click="openInNewTab(item)">{{ item.url }}</li>
+    </ul>
   </div>
 </template>
 
@@ -35,7 +37,45 @@ export default class History extends Vue {
       historyDB.add(reqData);
     }
   }
+
+  /**
+   * 新窗口打开
+   * @param reqData
+   */
+  private openInNewTab(reqData: RequesterData) {
+    //
+  }
+
+  private deleteHistory(reqData: RequesterData) {
+    //
+  }
+
+  private operateHistory(reqData: RequesterData, operate: string) {
+    switch (operate) {
+      case "open":
+        this.openInNewTab(reqData);
+        break;
+      case "delete":
+        this.deleteHistory(reqData);
+        break;
+    }
+  }
 }
 </script>
 
-<style></style>
+<style lang="scss" scoped>
+.history {
+  ul {
+    padding-left: 10px;
+    margin: 0;
+  }
+  ul li {
+    list-style: none;
+    color: #606266;
+    font-size: 14px;
+  }
+  ul li:hover {
+    background-color: #f5f7fa;
+  }
+}
+</style>

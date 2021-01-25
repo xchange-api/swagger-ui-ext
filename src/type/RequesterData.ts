@@ -1,4 +1,5 @@
 import { isJSON } from "@/util/TextUtil";
+import { JSONPrettier } from "@/util/PrettierFactory";
 
 export class RequesterData {
   id!: number;
@@ -16,6 +17,12 @@ export class RequesterData {
   produces!: Array<string>;
 
   body!: any;
+
+  timestamp!: number;
+
+  static DEFAULT() {
+    return new RequesterData("get", "", [], {});
+  }
 
   constructor(type: string, url: string, parameters: Array<Parameter>, definitions: any) {
     this.type = type;
@@ -84,7 +91,7 @@ export class RequesterData {
     if (!this.containBody()) {
       return "";
     }
-    return JSON.stringify(this.bodyExample());
+    return new JSONPrettier(JSON.stringify(this.bodyExample())).pretty();
   }
 
   set bodyStr(value: string) {
@@ -110,6 +117,7 @@ export class RequesterData {
    * hashId避免添加相同的历史记录
    */
   public hashId() {
+    this.timestamp = new Date().getTime();
     const str = this.url + this.type + JSON.stringify(this.parameters) + JSON.stringify(this.body);
     let hash = 0;
     for (let i = 0; i < str.length; i++) {

@@ -48,6 +48,10 @@ function buildFormData(reqData: RequesterData): FormData | undefined {
   const formData = new FormData();
   const parameters = reqData.params(InType.FORM_DATA);
   for (const parameter of parameters) {
+    if (!parameter.value) {
+      continue;
+    }
+
     if (parameter.value.length) {
       for (let i = 0; i < parameter.value.length; i++) {
         formData.append(parameter.name, parameter.value[i]);

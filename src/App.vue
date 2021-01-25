@@ -6,12 +6,13 @@
         <!--left side api collection and history-->
         <el-aside width="320px" class="aside-box">
           <el-tabs v-model="activeTabName" class="tabs-list">
-            <el-tab-pane label="api collection" name="apiCollection">
-              <api-collection />
+            <el-tab-pane label="api" name="api">
+              <api />
             </el-tab-pane>
             <el-tab-pane label="history" name="history">
               <history />
             </el-tab-pane>
+            <el-tab-pane label="collection" name="collection"></el-tab-pane>
           </el-tabs>
         </el-aside>
         <!--main page-->
@@ -23,19 +24,19 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import ApiCollection from "@/components/ApiCollection.vue";
+import Api from "@/components/Api.vue";
 import Tabs from "@/components/Tabs.vue";
 import History from "@/components/History.vue";
 
 @Component({
   components: {
     History,
-    ApiCollection,
+    Api,
     Tabs
   }
 })
 export default class App extends Vue {
-  private activeTabName = "apiCollection";
+  private activeTabName = "api";
 }
 </script>
 
