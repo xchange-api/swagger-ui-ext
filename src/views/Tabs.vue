@@ -1,6 +1,14 @@
 <template>
   <div class="tabs">
-    <el-tabs v-model="activeTabName" type="card" @tab-click="handleClick" @tab-remove="removeTab">
+    <my-menu :data="menuData" @select="menuSelect" ref="tabMenu" />
+
+    <el-tabs
+      v-model="activeTabName"
+      type="card"
+      @tab-click="handleClick"
+      @tab-remove="removeTab"
+      @contextmenu.prevent.native="showMenu($event)"
+    >
       <el-tab-pane v-for="item in tabList" :key="item.name" :label="item.title" :name="item.name" :closable="true">
         <requester :req-data="item.content"></requester>
       </el-tab-pane>
@@ -11,15 +19,17 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import Requester from "@/components/Requester.vue";
+import Requester from "@/views/Requester.vue";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
 import { RequesterData } from "@/type/RequesterData";
-import { Tab } from "@/type/Tab";
+import { MenuData, Tab } from "@/type/ComponentType";
+import Menu from "@/components/Menu.vue";
 
 @Component({
   components: {
-    Requester
+    Requester,
+    MyMenu: Menu
   }
 })
 export default class Tabs extends Vue {
@@ -30,7 +40,21 @@ export default class Tabs extends Vue {
       content: RequesterData.DEFAULT()
     }
   ];
+
   private activeTabName = "default";
+
+  private tabName!: string;
+
+  private menuData: MenuData = {
+    items: [
+      { command: "closeRight", text: "关闭右侧" },
+      { command: "closeLeft", text: "关闭左侧" },
+      { command: "closeAll", text: "关闭全部" },
+      { command: "closeOther", text: "关闭其他" }
+    ],
+    display: false,
+    position: { top: "0px", left: "0px" }
+  };
 
   created() {
     Bus.$on(BusEvent.OPEN_TAB, (reqData: RequesterData, option: any) => {
@@ -50,6 +74,10 @@ export default class Tabs extends Vue {
           break;
       }
     });
+  }
+
+  mounted() {
+    this.hideMenu();
   }
 
   /**
@@ -131,6 +159,45 @@ export default class Tabs extends Vue {
     if (tab.name === "add") {
       event.preventDefault();
       this.openInNewTab("addTab", "addTab", RequesterData.DEFAULT());
+    }
+  }
+
+  private showMenu(e: any) {
+    if (!e.target?.id) {
+      return;
+    }
+    const tabName = e.target.id;
+    this.tabName = tabName.replace("tab-", "");
+    this.menuData.position = { top: e.pageY + "px", left: e.pageX + "px" };
+    this.menuData.display = true;
+  }
+
+  private hideMenu() {
+    document.onclick = event => {
+      if (this.menuData.display && event.target !== this.$refs.tabMenu) {
+        this.menuData.display = false;
+      }
+    };
+  }
+
+  private menuSelect(command: string) {
+    switch (command) {
+      case "closeRight":
+        this.closeRight();
+        break;
+    }
+  }
+
+  private closeRight() {
+    debugger;
+    const tabName = this.tabName;
+    const tabs = this.tabList;
+    for (let i = 0; i < tabs.length; i++) {
+      if (tabs[i].name === tabName) {
+        this.tabList = tabs.slice(0, i + 1);
+        this.activeTabName = tabName;
+        break;
+      }
     }
   }
 }

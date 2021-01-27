@@ -24,9 +24,9 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import Api from "@/components/Api.vue";
-import Tabs from "@/components/Tabs.vue";
-import History from "@/components/History.vue";
+import Api from "@/views/Api.vue";
+import Tabs from "@/views/Tabs.vue";
+import History from "@/views/History.vue";
 
 @Component({
   components: {
@@ -54,5 +54,5 @@ $height: calc(100vh - 76px);
 }
 .main-box {
   height: $height;
-}</style
->>
+}
+</style>

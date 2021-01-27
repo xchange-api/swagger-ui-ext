@@ -55,9 +55,9 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { Parameter, RequesterData } from "@/type/RequesterData";
-import Response from "@/components/Response.vue";
+import Response from "@/views/Response.vue";
 import Editor from "@/components/Editor.vue";
-import Authorization from "@/components/Authorization.vue";
+import Authorization from "@/views/Authorization.vue";
 import { request } from "@/util/Http";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";

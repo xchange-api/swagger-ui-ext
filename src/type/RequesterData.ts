@@ -91,6 +91,7 @@ export class RequesterData {
     if (!this.containBody()) {
       return "";
     }
+    this.body = this.bodyExample();
     return new JSONPrettier(JSON.stringify(this.bodyExample())).pretty();
   }
 

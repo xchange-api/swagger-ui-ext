@@ -1,12 +1,7 @@
 <template>
   <div>
-    <el-tree :data="apiThree" @node-click="clickNode" @node-contextmenu="menu"></el-tree>
-    <div id="perTreeMenu" v-if="menuDisplay" class="tree_menu" :style="{ ...rightMenu }">
-      <ul>
-        <li @click="openInCurrentTab">当前标签打开</li>
-        <li @click="openInBackgroundTab">后台打开</li>
-      </ul>
-    </div>
+    <el-tree :data="apiThree" @node-click="clickNode" @node-contextmenu="showMenu"></el-tree>
+    <my-menu :data="menuData" @select="menuSelect" ref="apiMenu" />
   </div>
 </template>
 
@@ -16,29 +11,36 @@ import { get } from "@/util/Http";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
 import { RequesterData } from "@/type/RequesterData";
+import { MenuData } from "@/type/ComponentType";
+import Menu from "@/components/Menu.vue";
 
 @Component({
-  components: {}
+  components: {
+    MyMenu: Menu
+  }
 })
 export default class Api extends Vue {
   private apiDoc!: any;
+
   private apiThree: Array<any> = [];
-  private rightMenu = { top: "0px", left: "0px" };
-  private menuDisplay = false;
+
   private reqData!: RequesterData;
+
+  private menuData: MenuData = {
+    items: [
+      { command: "openInCurrentTab", text: "当前标签打开" },
+      { command: "openInBackgroundTab", text: "后台打开" }
+    ],
+    display: false,
+    position: { top: "0px", left: "0px" }
+  };
 
   created() {
     this.initApiDoc();
   }
 
   mounted() {
-    // 点击空白处关闭菜单
-    const that = this;
-    document.onclick = function(event) {
-      if (event.target !== document.getElementById("perTreeMenu")) {
-        that.menuDisplay = false;
-      }
-    };
+    this.hideMenu();
   }
 
   private initApiDoc() {
@@ -89,11 +91,30 @@ export default class Api extends Vue {
     }
   }
 
-  private menu(e: MouseEvent, data: any, node: any) {
+  private showMenu(e: MouseEvent, data: any, node: any) {
     if (node.level === 2) {
-      this.rightMenu = { top: e.pageY + "px", left: e.pageX + "px" };
-      this.menuDisplay = true;
+      this.menuData.position = { top: e.pageY + "px", left: e.pageX + "px" };
+      this.menuData.display = true;
       this.reqData = data.reqData;
+    }
+  }
+
+  private hideMenu() {
+    document.onclick = event => {
+      if (this.menuData.display && event.target !== this.$refs.apiMenu) {
+        this.menuData.display = false;
+      }
+    };
+  }
+
+  private menuSelect(command: string) {
+    switch (command) {
+      case "openInCurrentTab":
+        this.openInCurrentTab();
+        break;
+      case "openInBackgroundTab":
+        this.openInBackgroundTab();
+        break;
     }
   }
 
@@ -107,31 +128,4 @@ export default class Api extends Vue {
 }
 </script>
 
-<style lang="scss" scoped>
-.tree_menu {
-  position: fixed;
-  display: block;
-  z-index: 20000;
-  background-color: #fff;
-  padding: 5px 0;
-  border: 1px solid #ebeef5;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-
-  ul {
-    margin: 0;
-    padding: 0;
-  }
-  ul li {
-    list-style: none;
-    margin: 0;
-    padding: 0 10px;
-    font-size: 14px;
-    line-height: 30px;
-    cursor: pointer;
-  }
-  ul li:hover {
-    background-color: #f5f7fa;
-  }
-}
-</style>
+<style lang="scss" scoped></style>
