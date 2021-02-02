@@ -1,7 +1,9 @@
 <template>
   <div class="history">
     <ul>
-      <li v-for="item in history" :key="item.url + item.id" @click="openInNewTab(item)">{{ item.url }}</li>
+      <li v-for="item in history" :key="item.url + item.id" @click="openInNewTab(item)">
+        <span class="multi-line">{{ item.url }}</span>
+      </li>
     </ul>
   </div>
 </template>
@@ -73,6 +75,13 @@ export default class History extends Vue {
     list-style: none;
     color: #606266;
     font-size: 14px;
+
+    .multi-line {
+      overflow-wrap: break-word;
+      word-break: break-all;
+      overflow: hidden;
+      height: auto;
+    }
   }
   ul li:hover {
     background-color: #f5f7fa;

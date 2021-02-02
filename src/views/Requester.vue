@@ -38,12 +38,20 @@
         <el-tab-pane label="Authorization" name="auth">
           <authorization />
         </el-tab-pane>
-        <el-tab-pane label="Header" name="header"></el-tab-pane>
-        <el-tab-pane label="Body" name="body">
+        <el-tab-pane label="Header" name="header">
+          <editor :value.sync="reqData.header" language="plaintext">
+            <template v-slot:placeholder>
+              <span class="placeholder" v-show="reqData.header === '' || reqData.header === undefined">
+                // Example<br />
+              </span>
+            </template>
+          </editor>
+        </el-tab-pane>
+        <el-tab-pane label="Body" name="body" :disabled="!reqData.supportBody()">
           <editor :value.sync="reqData.bodyStr" :language="language"></editor>
         </el-tab-pane>
         <!--http response start-->
-        <el-tab-pane label="Response" name="response">
+        <el-tab-pane label="Response" name="response" :disabled="!response">
           <response :response="response" :headers="headers"></response>
         </el-tab-pane>
         <!--http response end-->
@@ -96,4 +104,13 @@ export default class Requester extends Vue {
 }
 </script>
 
-<style></style>
+<style lang="scss" scoped>
+.placeholder {
+  position: absolute;
+  left: 64px;
+  top: 0;
+  z-index: 1;
+  font-size: 14px;
+  color: #b7b7b7;
+}
+</style>

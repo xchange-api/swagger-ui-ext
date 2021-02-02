@@ -1,6 +1,7 @@
 <template>
   <div>
-    <div ref="editorContainer" style="height: 500px; width: 100%"></div>
+    <div ref="editorContainer" style="min-height: 500px; width: 100%"></div>
+    <div @click="focus"><slot name="placeholder"></slot></div>
   </div>
 </template>
 
@@ -16,7 +17,7 @@ export default class Editor extends Vue {
   private value!: string;
 
   @Prop()
-  private language = "json";
+  private language!: string;
 
   private model!: monaco.editor.ITextModel;
 
@@ -59,6 +60,13 @@ export default class Editor extends Vue {
   @Watch("language", { immediate: false, deep: true })
   private languageChange(newLanguage: string) {
     monaco.editor.setModelLanguage(this.model, newLanguage);
+  }
+
+  /**
+   * 点击placeholder时光标移到编辑器上
+   */
+  private focus() {
+    this.editor.focus();
   }
 }
 </script>

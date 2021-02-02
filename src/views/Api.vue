@@ -1,6 +1,11 @@
+<!--api树-->
 <template>
   <div>
-    <el-tree :data="apiThree" @node-click="clickNode" @node-contextmenu="showMenu"></el-tree>
+    <el-tree :data="apiThree" @node-click="clickNode" @node-contextmenu="showMenu">
+      <div slot-scope="{ node }">
+        <span class="multi-line">{{ node.label }}</span>
+      </div>
+    </el-tree>
     <my-menu :data="menuData" @select="menuSelect" ref="apiMenu" />
   </div>
 </template>
@@ -43,6 +48,9 @@ export default class Api extends Vue {
     this.hideMenu();
   }
 
+  /**
+   * 访问swagger, 初始化api文档
+   */
   private initApiDoc() {
     get("/swagger-resources", {})
       .then((res: any) => {
@@ -58,6 +66,9 @@ export default class Api extends Vue {
       .catch(e => console.error(e));
   }
 
+  /**
+   * 处理一级（controller）节点
+   */
   private apiDoc2Three() {
     const three = [];
     const tags = this.apiDoc.tags;
@@ -68,6 +79,10 @@ export default class Api extends Vue {
     this.apiThree = three;
   }
 
+  /**
+   * 处理二级（方法）节点
+   * @param tagName controller名称
+   */
   private getChildrenThree(tagName: string) {
     const children = [];
     const paths = this.apiDoc.paths;
@@ -91,6 +106,12 @@ export default class Api extends Vue {
     }
   }
 
+  /**
+   * 右键菜单
+   * @param e
+   * @param data
+   * @param node
+   */
   private showMenu(e: MouseEvent, data: any, node: any) {
     if (node.level === 2) {
       this.menuData.position = { top: e.pageY + "px", left: e.pageX + "px" };
@@ -107,6 +128,10 @@ export default class Api extends Vue {
     };
   }
 
+  /**
+   * 右键菜单选择
+   * @param command
+   */
   private menuSelect(command: string) {
     switch (command) {
       case "openInCurrentTab":
@@ -128,4 +153,21 @@ export default class Api extends Vue {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.api {
+  .multi-line {
+    overflow-wrap: break-word;
+    word-break: break-all;
+    overflow: hidden;
+    height: auto;
+  }
+
+  /deep/ .el-tree-node {
+    white-space: normal;
+    .el-tree-node__content {
+      height: 100%;
+      align-items: start;
+    }
+  }
+}
+</style>

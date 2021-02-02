@@ -1,12 +1,18 @@
 import { json, xml } from "vkbeautify";
 import { isHTML, isJSON, isXML } from "@/util/TextUtil";
 
+/**
+ * 格式化接口
+ */
 export interface Prettier {
   type: string;
   value: string;
   pretty(): string;
 }
 
+/**
+ * json格式化
+ */
 export class JSONPrettier implements Prettier {
   type = "json";
 
@@ -21,6 +27,9 @@ export class JSONPrettier implements Prettier {
   }
 }
 
+/**
+ * xml格式化
+ */
 export class XMLPrettier implements Prettier {
   type = "xml";
 
@@ -35,6 +44,9 @@ export class XMLPrettier implements Prettier {
   }
 }
 
+/**
+ * html格式化
+ */
 export class HTMLPrettier implements Prettier {
   type = "html";
 
@@ -63,6 +75,9 @@ class DefaultPrettier implements Prettier {
   }
 }
 
+/**
+ * 格式化工厂类
+ */
 export class PrettierFactory {
   public static getPrettier(value: string, contentType?: string): Prettier {
     if (contentType?.includes("application/json") || isJSON(value)) {
