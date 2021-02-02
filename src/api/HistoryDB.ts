@@ -8,7 +8,7 @@ class HistoryDB extends Dexie {
     super("swagger-ui-ext");
     this.version(20201126).stores({
       // just declare index and key column
-      history: "++id,url"
+      history: "&id,url"
     });
     this.history = this.table("history");
   }

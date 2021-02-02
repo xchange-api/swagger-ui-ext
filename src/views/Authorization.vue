@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div >123</div>
+    <div></div>
   </div>
 </template>
 
@@ -10,9 +10,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 @Component({
   components: {}
 })
-export default class Authorizatuion extends Vue {
-    
-}
+export default class Authorization extends Vue {}
 </script>
 
 <style></style>
