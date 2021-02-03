@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, Method, AxiosResponse } from "axios";
-import { InType, RequesterData } from "@/type/RequesterData";
+import { InType, Parameter, RequesterData } from "@/type/RequesterData";
 
 export function get(url: string, params: { [key: string]: any }) {
   return new Promise((resolve, reject) => {
@@ -22,7 +22,8 @@ function buildRequestConfig(reqData: RequesterData): AxiosRequestConfig {
       pre[cur.name] = cur.value;
       return pre;
     }, {}),
-    data: buildFormData(reqData) || reqData.body,
+    headers: buildHeader(reqData.header),
+    data: buildFormData(reqData.params(InType.FORM_DATA)) || reqData.body,
     responseType: "arraybuffer"
   };
 }
@@ -41,12 +42,11 @@ export function request(reqData: RequesterData): Promise<AxiosResponse> {
 }
 
 /**
- * 创建formData
- * @param reqData
+ * 构建表单
+ * @param parameters
  */
-function buildFormData(reqData: RequesterData): FormData | undefined {
+function buildFormData(parameters: Parameter[]): FormData | undefined {
   const formData = new FormData();
-  const parameters = reqData.params(InType.FORM_DATA);
   for (const parameter of parameters) {
     if (!parameter.value) {
       continue;
@@ -61,4 +61,20 @@ function buildFormData(reqData: RequesterData): FormData | undefined {
     }
   }
   return parameters.length > 0 ? formData : undefined;
+}
+
+/**
+ * 构建请求头
+ * @param value
+ */
+function buildHeader(value: string): any {
+  const header: { [key: string]: string } = {};
+  if (value && value.includes(":")) {
+    const lines = value.split("\r\n");
+    for (const line of lines) {
+      const idx = line.indexOf(":");
+      header[line.substring(0, idx)] = line.substring(idx + 1, line.length);
+    }
+  }
+  return header;
 }

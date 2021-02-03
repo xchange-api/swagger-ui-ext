@@ -185,17 +185,75 @@ export default class Tabs extends Vue {
       case "closeRight":
         this.closeRight();
         break;
+      case "closeLeft":
+        this.closeLeft();
+        break;
+      case "closeAll":
+        this.closeAll();
+        break;
+      case "closeOther":
+        this.closeOther();
+        break;
     }
   }
 
+  /**
+   * 关闭右侧标签页
+   * 当前激活窗口在右侧要关闭的标签页中, 则关闭后激活点击右键的标签页
+   */
   private closeRight() {
-    debugger;
     const tabName = this.tabName;
     const tabs = this.tabList;
+    let activateTabNeedClose = true; // 当前激活窗口在右侧要关闭的标签页中
     for (let i = 0; i < tabs.length; i++) {
+      if (tabs[i].name === this.activeTabName) {
+        activateTabNeedClose = false;
+      }
+
       if (tabs[i].name === tabName) {
         this.tabList = tabs.slice(0, i + 1);
-        this.activeTabName = tabName;
+        if (activateTabNeedClose) {
+          this.activeTabName = tabName;
+        }
+        break;
+      }
+    }
+  }
+
+  /**
+   * 关闭左侧标签页
+   * 当前激活窗口在左侧要关闭的标签页中, 则关闭后激活点击右键的标签页
+   */
+  private closeLeft() {
+    const tabName = this.tabName;
+    const tabs = this.tabList;
+    let activateTabNeedClose = false; // 当前激活窗口在左侧要关闭的标签页中
+    for (let i = 0; i < tabs.length; i++) {
+      if (tabs[i].name === this.activeTabName) {
+        activateTabNeedClose = true;
+      }
+
+      if (tabs[i].name === tabName) {
+        this.tabList = tabs.slice(i, tabs.length);
+        if (activateTabNeedClose) {
+          this.activeTabName = tabName;
+        }
+        break;
+      }
+    }
+  }
+
+  private closeAll() {
+    this.tabList = [];
+    this.activeTabName = "";
+  }
+
+  private closeOther() {
+    const tabs = this.tabList;
+    for (let i = 0; i < tabs.length; i++) {
+      if (tabs[i].name === this.tabName) {
+        this.tabList = [tabs[i]];
+        this.activeTabName = this.tabName;
         break;
       }
     }

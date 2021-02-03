@@ -16,6 +16,8 @@ export class RequesterData {
 
   produces!: Array<string>;
 
+  header!: string;
+
   body!: any;
 
   timestamp!: number;
@@ -119,7 +121,7 @@ export class RequesterData {
    */
   public hashId() {
     this.timestamp = new Date().getTime();
-    const str = this.url + this.type + JSON.stringify(this.parameters) + JSON.stringify(this.body);
+    const str = this.url + this.type + JSON.stringify(this.parameters) + JSON.stringify(this.body) + this.header;
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;

@@ -1,13 +1,18 @@
-<!---->
+<!--响应-->
 <template>
   <div>
     <el-tabs v-model="activeTabName" type="border-card">
+      <!--response body start-->
       <el-tab-pane label="Body" name="body">
-        <div ref="editorContainer"></div>
+        <div ref="editorContainer" style="min-height: 500px;"></div>
       </el-tab-pane>
+      <!--response body end-->
+
+      <!--response header start-->
       <el-tab-pane label="Header" name="header">
         <li v-for="(value, key) in headers" :key="key">{{ key }}: {{ value }}</li>
       </el-tab-pane>
+      <!--response header end-->
     </el-tabs>
   </div>
 </template>
@@ -34,6 +39,10 @@ export default class Response extends Vue {
 
   private activeTabName = "body";
 
+  /**
+   * 监听响应, 按类型显示
+   * @param newResponse
+   */
   @Watch("response", { immediate: false, deep: true })
   responseChange(newResponse: ArrayBuffer) {
     fromBuffer(newResponse).then(type => {
@@ -58,6 +67,7 @@ export default class Response extends Vue {
     this.editor = monaco.editor.create(element, {
       model: this.model,
       minimap: { enabled: false },
+      readOnly: true,
       automaticLayout: true // 当加载时被挂载的元素不可见时, monaco editor会设置为隐藏, 被挂载元素变为可见时不会自动更新为可见
     });
   }
