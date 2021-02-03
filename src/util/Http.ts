@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig, Method, AxiosResponse } from "axios";
 import { InType, Parameter, RequesterData } from "@/type/RequesterData";
+import r2curl from "r2curl";
 
 export function get(url: string, params: { [key: string]: any }) {
   return new Promise((resolve, reject) => {
@@ -26,6 +27,15 @@ function buildRequestConfig(reqData: RequesterData): AxiosRequestConfig {
     data: buildFormData(reqData.params(InType.FORM_DATA)) || reqData.body,
     responseType: "arraybuffer"
   };
+}
+
+export function buildCURL(reqData: RequesterData): string {
+  return r2curl({
+    url: reqData.fullURL(),
+    method: reqData.type as Method,
+    headers: buildHeader(reqData.header),
+    data: buildFormData(reqData.params(InType.FORM_DATA)) || reqData.body
+  });
 }
 
 export function request(reqData: RequesterData): Promise<AxiosResponse> {

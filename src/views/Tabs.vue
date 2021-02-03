@@ -25,6 +25,7 @@ import { BusEvent } from "@/type/BusEvent";
 import { RequesterData } from "@/type/RequesterData";
 import { MenuData, Tab } from "@/type/ComponentType";
 import Menu from "@/components/Menu.vue";
+import { buildCURL } from "@/util/Http";
 
 @Component({
   components: {
@@ -43,14 +44,16 @@ export default class Tabs extends Vue {
 
   private activeTabName = "default";
 
-  private tabName!: string;
+  private tabName!: string; // 右键选中的tab
 
   private menuData: MenuData = {
     items: [
       { command: "closeRight", text: "关闭右侧" },
       { command: "closeLeft", text: "关闭左侧" },
       { command: "closeAll", text: "关闭全部" },
-      { command: "closeOther", text: "关闭其他" }
+      { command: "closeOther", text: "关闭其他" },
+      { command: "copyURL", text: "复制URL" },
+      { command: "copyCURL", text: "复制CURL" }
     ],
     display: false,
     position: { top: "0px", left: "0px" }
@@ -194,6 +197,12 @@ export default class Tabs extends Vue {
       case "closeOther":
         this.closeOther();
         break;
+      case "copyURL":
+        this.copyURL();
+        break;
+      case "copyCURL":
+        this.copyCURL();
+        break;
     }
   }
 
@@ -257,6 +266,32 @@ export default class Tabs extends Vue {
         break;
       }
     }
+  }
+
+  private copyURL() {
+    const tab = this.tabList.find(value => value.name === this.tabName);
+    if (!tab) {
+      return;
+    }
+    this.copyToClipboard(tab.content.fullURL());
+  }
+
+  private copyCURL() {
+    const tab = this.tabList.find(value => value.name === this.tabName);
+    if (!tab) {
+      return;
+    }
+    this.copyToClipboard(buildCURL(tab.content));
+  }
+
+  private copyToClipboard(value: string) {
+    const element = document.createElement("input");
+    element.setAttribute("value", value);
+    element.setAttribute("style", "position: absolute; left: -999px;");
+    document.body.appendChild(element);
+    element.select();
+    document.execCommand("copy");
+    document.body.removeChild(element);
   }
 }
 </script>

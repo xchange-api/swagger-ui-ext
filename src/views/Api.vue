@@ -1,6 +1,6 @@
 <!--api树-->
 <template>
-  <div>
+  <div class="api">
     <el-tree :data="apiThree" @node-click="clickNode" @node-contextmenu="showMenu">
       <div slot-scope="{ node }">
         <span class="multi-line">{{ node.label }}</span>
@@ -45,7 +45,11 @@ export default class Api extends Vue {
   }
 
   mounted() {
-    this.hideMenu();
+    document.onclick = event => {
+      if (this.menuData.display && event.target !== this.$refs.apiMenu) {
+        this.menuData.display = false;
+      }
+    };
   }
 
   /**
@@ -86,13 +90,14 @@ export default class Api extends Vue {
   private getChildrenThree(tagName: string) {
     const children = [];
     const paths = this.apiDoc.paths;
-    for (const reqUrl in paths) {
-      for (const reqType in paths[reqUrl]) {
-        const reqInfo = paths[reqUrl][reqType];
+    for (const path in paths) {
+      for (const reqType in paths[path]) {
+        const reqInfo = paths[path][reqType];
         if (reqInfo.tags.includes(tagName)) {
+          const url = (this.apiDoc.basePath === "/" ? "" : this.apiDoc.basePath) + path;
           children.push({
-            label: reqUrl,
-            reqData: new RequesterData(reqType, reqUrl, reqInfo.parameters, this.apiDoc.definitions)
+            label: url,
+            reqData: new RequesterData(reqType, url, reqInfo.parameters, this.apiDoc.definitions, this.apiDoc.host)
           });
         }
       }
@@ -118,14 +123,6 @@ export default class Api extends Vue {
       this.menuData.display = true;
       this.reqData = data.reqData;
     }
-  }
-
-  private hideMenu() {
-    document.onclick = event => {
-      if (this.menuData.display && event.target !== this.$refs.apiMenu) {
-        this.menuData.display = false;
-      }
-    };
   }
 
   /**

@@ -43,6 +43,8 @@
             <template v-slot:placeholder>
               <span class="placeholder" v-show="reqData.header === '' || reqData.header === undefined">
                 // Example<br />
+                Accept: application/json, text/plain, */*<br />
+                Accept-Language: zh-CN,zh;q=0.9
               </span>
             </template>
           </editor>
@@ -52,7 +54,7 @@
         </el-tab-pane>
         <!--http response start-->
         <el-tab-pane label="Response" name="response" :disabled="!response">
-          <response :response="response" :headers="headers"></response>
+          <response :response="response" :headers="respHeaders"></response>
         </el-tab-pane>
         <!--http response end-->
       </el-tabs>
@@ -77,19 +79,20 @@ export default class Requester extends Vue {
   @Prop()
   private reqData!: RequesterData;
 
-  private response: any = "";
-
   private activeTabName = "params";
 
   private language = "json";
 
-  private headers: any = "";
+  private response: any = "";
+
+  private respHeaders: any = "";
 
   private clickSend() {
     request(this.reqData).then(res => {
-      this.headers = res.headers;
+      this.respHeaders = res.headers;
       this.response = res.data;
       this.activeTabName = "response";
+      this.reqData.hashId();
       this.addHistory();
     });
   }

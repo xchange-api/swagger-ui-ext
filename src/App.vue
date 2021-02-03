@@ -6,13 +6,13 @@
         <!--left side api collection and history-->
         <el-aside width="320px" class="aside-box">
           <el-tabs v-model="activeTabName" class="tabs-list">
-            <el-tab-pane label="api" name="api">
+            <el-tab-pane label="Api" name="api">
               <api />
             </el-tab-pane>
-            <el-tab-pane label="history" name="history">
+            <el-tab-pane label="History" name="history">
               <history />
             </el-tab-pane>
-            <el-tab-pane label="collection" name="collection"></el-tab-pane>
+            <el-tab-pane label="Collection" name="collection"></el-tab-pane>
           </el-tabs>
         </el-aside>
         <!--main page-->

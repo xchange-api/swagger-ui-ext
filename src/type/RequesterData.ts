@@ -6,6 +6,8 @@ export class RequesterData {
 
   type: string;
 
+  host: string | undefined;
+
   url: string;
 
   parameters: Array<Parameter>;
@@ -26,11 +28,12 @@ export class RequesterData {
     return new RequesterData("get", "", [], {});
   }
 
-  constructor(type: string, url: string, parameters: Array<Parameter>, definitions: any) {
+  constructor(type: string, url: string, parameters: Array<Parameter>, definitions: any, host?: string) {
     this.type = type;
     this.url = url;
     this.parameters = parameters;
     this.definitions = definitions;
+    this.host = host;
     this.init();
   }
 
@@ -128,6 +131,10 @@ export class RequesterData {
     }
     this.id = hash;
     return this.id;
+  }
+
+  public fullURL(): string {
+    return (this.host || "") + this.query;
   }
 
   /**

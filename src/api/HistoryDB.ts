@@ -4,8 +4,9 @@ import { RequesterData } from "@/type/RequesterData";
 class HistoryDB extends Dexie {
   public history: Dexie.Table<RequesterData, number>;
 
+  // TODO 版本不一致时提醒用户更新数据库
   public constructor(dbName: string) {
-    super("swagger-ui-ext");
+    super(dbName);
     this.version(20201126).stores({
       // just declare index and key column
       history: "&id,url"

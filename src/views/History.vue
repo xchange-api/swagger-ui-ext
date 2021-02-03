@@ -33,7 +33,7 @@ export default class History extends Vue {
   }
 
   private addHistory(reqData: RequesterData) {
-    const history = this.history.find(h => h.id === reqData.hashId());
+    const history = this.history.find(h => h.id === reqData.id);
     if (!history) {
       this.history.push(reqData);
       historyDB.add(reqData);
@@ -74,7 +74,8 @@ export default class History extends Vue {
   ul li {
     list-style: none;
     color: #606266;
-    font-size: 14px;
+    font-size: 16px;
+    padding: 2px 0;
 
     .multi-line {
       overflow-wrap: break-word;
