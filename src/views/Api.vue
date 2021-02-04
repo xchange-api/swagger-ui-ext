@@ -45,6 +45,7 @@ export default class Api extends Vue {
   }
 
   mounted() {
+    // TODO 修复菜单不消失bug
     document.onclick = event => {
       if (this.menuData.display && event.target !== this.$refs.apiMenu) {
         this.menuData.display = false;
@@ -152,13 +153,13 @@ export default class Api extends Vue {
 
 <style lang="scss" scoped>
 .api {
+  /**多行文本*/
   .multi-line {
     overflow-wrap: break-word;
     word-break: break-all;
     overflow: hidden;
     height: auto;
   }
-
   /deep/ .el-tree-node {
     white-space: normal;
     .el-tree-node__content {
