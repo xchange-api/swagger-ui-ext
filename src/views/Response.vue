@@ -4,13 +4,15 @@
     <el-tabs v-model="activeTabName" type="border-card">
       <!--response body start-->
       <el-tab-pane label="Body" name="body">
-        <div ref="editorContainer" style="min-height: 500px;"></div>
+        <div ref="editorContainer" class="response-body"></div>
       </el-tab-pane>
       <!--response body end-->
 
       <!--response header start-->
       <el-tab-pane label="Header" name="header">
-        <li v-for="(value, key) in headers" :key="key">{{ key }}: {{ value }}</li>
+        <ul class="response-header">
+          <li v-for="(value, key) in headers" :key="key">{{ key }}: {{ value }}</li>
+        </ul>
       </el-tab-pane>
       <!--response header end-->
     </el-tabs>
@@ -68,10 +70,19 @@ export default class Response extends Vue {
       model: this.model,
       minimap: { enabled: false },
       readOnly: true,
+      contextmenu: false,
       automaticLayout: true // 当加载时被挂载的元素不可见时, monaco editor会设置为隐藏, 被挂载元素变为可见时不会自动更新为可见
     });
   }
 }
 </script>
 
-<style></style>
+<style lang="scss" scoped>
+.response-body {
+  height: calc(100vh - 317px);
+}
+
+.response-header {
+  height: calc(100vh - 349px);
+}
+</style>

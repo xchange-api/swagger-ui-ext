@@ -67,12 +67,6 @@ $height: calc(100vh - 76px);
   height: $height;
   min-width: 260px;
   max-width: 500px;
-  .tabs-list {
-    .el-tabs__content {
-      height: calc(100vh - 130px);
-      overflow: auto;
-    }
-  }
 }
 .main-box {
   height: $height;
@@ -83,7 +77,7 @@ $height: calc(100vh - 76px);
   background: #dcdfe6;
   width: 3px;
   cursor: col-resize;
-  margin-left: 2px;
+  margin: 0 2px;
 }
 
 /**滚动条样式*/

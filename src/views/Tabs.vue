@@ -1,6 +1,8 @@
 <template>
   <div class="tabs">
-    <my-menu :data="menuData" @select="menuSelect" ref="tabMenu" />
+    <context-menu :data="menuData" :show.sync="menuShow" @select="menuSelect">
+      <button @click="copyURL"></button>
+    </context-menu>
 
     <el-tabs
       v-model="activeTabName"
@@ -18,19 +20,19 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 import Requester from "@/views/Requester.vue";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
 import { RequesterData } from "@/type/RequesterData";
 import { MenuData, Tab } from "@/type/ComponentType";
-import Menu from "@/components/Menu.vue";
+import ContextMenu from "@/components/ContextMenu.vue";
 import { buildCURL } from "@/util/Http";
 
 @Component({
   components: {
     Requester,
-    MyMenu: Menu
+    ContextMenu
   }
 })
 export default class Tabs extends Vue {
@@ -55,11 +57,16 @@ export default class Tabs extends Vue {
       { command: "copyURL", text: "复制URL" },
       { command: "copyCURL", text: "复制CURL" }
     ],
-    display: false,
     position: { top: "0px", left: "0px" }
   };
 
+  private menuShow = false;
+
   created() {
+    this.openTab();
+  }
+
+  private openTab() {
     Bus.$on(BusEvent.OPEN_TAB, (reqData: RequesterData, option: any) => {
       if (!option || !option.type) {
         return;
@@ -77,10 +84,6 @@ export default class Tabs extends Vue {
           break;
       }
     });
-  }
-
-  mounted() {
-    this.hideMenu();
   }
 
   /**
@@ -172,15 +175,7 @@ export default class Tabs extends Vue {
     const tabName = e.target.id;
     this.tabName = tabName.replace("tab-", "");
     this.menuData.position = { top: e.pageY + "px", left: e.pageX + "px" };
-    this.menuData.display = true;
-  }
-
-  private hideMenu() {
-    document.onclick = event => {
-      if (this.menuData.display && event.target !== this.$refs.tabMenu) {
-        this.menuData.display = false;
-      }
-    };
+    this.menuShow = true;
   }
 
   private menuSelect(command: string) {
@@ -269,6 +264,7 @@ export default class Tabs extends Vue {
   }
 
   private copyURL() {
+    debugger;
     const tab = this.tabList.find(value => value.name === this.tabName);
     if (!tab) {
       return;

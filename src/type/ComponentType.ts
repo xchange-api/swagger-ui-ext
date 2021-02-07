@@ -14,5 +14,4 @@ interface MenuItem {
 export interface MenuData {
   items: Array<MenuItem>;
   position: { [key: string]: string };
-  display: boolean;
 }

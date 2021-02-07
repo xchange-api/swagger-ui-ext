@@ -6,7 +6,7 @@
         <span class="multi-line">{{ node.label }}</span>
       </div>
     </el-tree>
-    <my-menu :data="menuData" @select="menuSelect" ref="apiMenu" />
+    <context-menu :data="menuData" :show.sync="menuShow" @select="menuSelect" />
   </div>
 </template>
 
@@ -17,11 +17,11 @@ import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
 import { RequesterData } from "@/type/RequesterData";
 import { MenuData } from "@/type/ComponentType";
-import Menu from "@/components/Menu.vue";
+import ContextMenu from "@/components/ContextMenu.vue";
 
 @Component({
   components: {
-    MyMenu: Menu
+    ContextMenu
   }
 })
 export default class Api extends Vue {
@@ -36,21 +36,13 @@ export default class Api extends Vue {
       { command: "openInCurrentTab", text: "当前标签打开" },
       { command: "openInBackgroundTab", text: "后台打开" }
     ],
-    display: false,
     position: { top: "0px", left: "0px" }
   };
 
+  private menuShow = false;
+
   created() {
     this.initApiDoc();
-  }
-
-  mounted() {
-    // TODO 修复菜单不消失bug
-    document.onclick = event => {
-      if (this.menuData.display && event.target !== this.$refs.apiMenu) {
-        this.menuData.display = false;
-      }
-    };
   }
 
   /**
@@ -121,7 +113,7 @@ export default class Api extends Vue {
   private showMenu(e: MouseEvent, data: any, node: any) {
     if (node.level === 2) {
       this.menuData.position = { top: e.pageY + "px", left: e.pageX + "px" };
-      this.menuData.display = true;
+      this.menuShow = true;
       this.reqData = data.reqData;
     }
   }

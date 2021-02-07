@@ -6,7 +6,7 @@
         <template slot="prepend">{{ reqData.type }}</template>
       </el-input>
       <!--请求url end-->
-      <el-button @click="clickSend">send</el-button>
+      <el-button @click="clickSend" type="primary">send</el-button>
     </div>
     <div>
       <el-tabs v-model="activeTabName">
@@ -39,7 +39,7 @@
           <authorization />
         </el-tab-pane>
         <el-tab-pane label="Header" name="header">
-          <editor :value.sync="reqData.header" language="plaintext">
+          <editor :value.sync="reqData.header" language="plaintext" class="header-editor">
             <template v-slot:placeholder>
               <span class="placeholder" v-show="reqData.header === '' || reqData.header === undefined">
                 // Example<br />
@@ -50,7 +50,7 @@
           </editor>
         </el-tab-pane>
         <el-tab-pane label="Body" name="body" :disabled="!reqData.supportBody()">
-          <editor :value.sync="reqData.bodyStr" :language="language"></editor>
+          <editor :value.sync="reqData.bodyStr" :language="language" class="body-editor"></editor>
         </el-tab-pane>
         <!--http response start-->
         <el-tab-pane label="Response" name="response" :disabled="!response">
@@ -88,13 +88,19 @@ export default class Requester extends Vue {
   private respHeaders: any = "";
 
   private clickSend() {
-    request(this.reqData).then(res => {
-      this.respHeaders = res.headers;
-      this.response = res.data;
-      this.activeTabName = "response";
-      this.reqData.hashId();
-      this.addHistory();
-    });
+    request(this.reqData)
+      .then(res => {
+        this.respHeaders = res.headers;
+        this.response = res.data;
+        this.activeTabName = "response";
+        this.reqData.hashId();
+        this.addHistory();
+      })
+      .catch(err => {
+        this.response = err.response.data;
+        this.respHeaders = err.response.headers;
+        this.activeTabName = "response";
+      });
   }
 
   private addHistory() {
@@ -108,6 +114,7 @@ export default class Requester extends Vue {
 </script>
 
 <style lang="scss" scoped>
+/**请求头编辑器placeholder*/
 .placeholder {
   position: absolute;
   left: 64px;
@@ -115,5 +122,13 @@ export default class Requester extends Vue {
   z-index: 1;
   font-size: 14px;
   color: #b7b7b7;
+}
+
+$height: calc(100vh - 246px);
+.header-editor {
+  height: $height;
+}
+.body-editor {
+  height: $height;
 }
 </style>
