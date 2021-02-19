@@ -15,3 +15,9 @@ export interface MenuData {
   items: Array<MenuItem>;
   position: { [key: string]: string };
 }
+
+export interface TreeNodeData {
+  label: string;
+  children?: Array<TreeNodeData>;
+  reqData?: RequesterData;
+}

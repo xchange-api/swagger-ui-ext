@@ -93,6 +93,7 @@ export default class Tabs extends Vue {
    * @param content
    */
   private openInNewTab(title: string, name: string, content: RequesterData) {
+    debugger;
     // 存在同名的tab
     let tabName = name;
     if (this.tabList.find(value => value.name === name)) {
@@ -264,7 +265,6 @@ export default class Tabs extends Vue {
   }
 
   private copyURL() {
-    debugger;
     const tab = this.tabList.find(value => value.name === this.tabName);
     if (!tab) {
       return;

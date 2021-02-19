@@ -25,3 +25,7 @@ export function isXML(data: string) {
 export function isHTML(data: string) {
   return /^<!DOCTYPE html|HTML/.test(data);
 }
+
+export function isBlank(data: string | undefined) {
+  return !data || data === "" || data.trim() === "";
+}

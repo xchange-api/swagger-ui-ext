@@ -4,4 +4,5 @@ export class BusEvent {
   static OPEN_IN_BACKGROUND_TAB = "open_in_background_tab"; //EventData: RequesterData
   static OPEN_TAB = "open_tab";
   static ADD_HISTORY = "add_history"; //EventData: RequesterData
+  static API_FILTER = "api_filter";
 }

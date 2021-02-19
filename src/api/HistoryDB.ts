@@ -21,6 +21,10 @@ class HistoryDB extends Dexie {
   public add(reqData: RequesterData) {
     return this.history.add(reqData);
   }
+
+  public remove(reqData: RequesterData) {
+    return this.history.delete(reqData.id);
+  }
 }
 
 const historyDB = new HistoryDB("swagger-ui-ext");

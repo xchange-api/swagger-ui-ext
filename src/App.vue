@@ -5,6 +5,10 @@
       <el-container>
         <!--left side api collection and history-->
         <el-aside class="aside-box">
+          <el-input placeholder="请输入内容" size="small" class="search" v-model="searchText">
+            {{ searchText }}
+            <i slot="prefix" class="el-input__icon el-icon-search" />
+          </el-input>
           <el-tabs v-model="activeTabName" class="tabs-list">
             <el-tab-pane label="Api" name="api">
               <api />
@@ -24,10 +28,12 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 import Api from "@/views/Api.vue";
 import Tabs from "@/views/Tabs.vue";
 import History from "@/views/History.vue";
+import Bus from "@/util/Bus";
+import { BusEvent } from "@/type/BusEvent";
 
 @Component({
   components: {
@@ -38,6 +44,8 @@ import History from "@/views/History.vue";
 })
 export default class App extends Vue {
   private activeTabName = "api";
+
+  private searchText = "";
 
   mounted() {
     this.resize();
@@ -56,6 +64,17 @@ export default class App extends Vue {
       document.onmouseup = () => (document.onmousemove = document.onmouseup = null);
     };
   }
+
+  @Watch("searchText", { immediate: false, deep: true })
+  private searchTextChange(newText: string) {
+    if (this.activeTabName === "api") {
+      Bus.$emit(BusEvent.API_FILTER, newText);
+    } else if (this.activeTabName === "history") {
+      // Bus.$emit(BusEvent.API_FILTER, newText);
+    } else if (this.activeTabName === "collection") {
+      // Bus.$emit(BusEvent.API_FILTER, newText);
+    }
+  }
 }
 </script>
 
@@ -67,6 +86,10 @@ $height: calc(100vh - 76px);
   height: $height;
   min-width: 260px;
   max-width: 500px;
+
+  .search {
+    width: 98%;
+  }
 }
 .main-box {
   height: $height;

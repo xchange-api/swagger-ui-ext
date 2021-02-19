@@ -1,7 +1,7 @@
 <!--api树-->
 <template>
   <div class="api">
-    <el-tree :data="apiThree" @node-click="clickNode" @node-contextmenu="showMenu">
+    <el-tree :data="apiThree" @node-click="openInNewTab" @node-contextmenu="showMenu">
       <div slot-scope="{ node }">
         <span class="multi-line">{{ node.label }}</span>
       </div>
@@ -16,8 +16,9 @@ import { get } from "@/util/Http";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
 import { RequesterData } from "@/type/RequesterData";
-import { MenuData } from "@/type/ComponentType";
+import { MenuData, TreeNodeData } from "@/type/ComponentType";
 import ContextMenu from "@/components/ContextMenu.vue";
+import { isBlank } from "@/util/TextUtil";
 
 @Component({
   components: {
@@ -27,7 +28,9 @@ import ContextMenu from "@/components/ContextMenu.vue";
 export default class Api extends Vue {
   private apiDoc!: any;
 
-  private apiThree: Array<any> = [];
+  private apiThree: Array<TreeNodeData> = [];
+
+  private sourceApiTree: Array<TreeNodeData> = [];
 
   private reqData!: RequesterData;
 
@@ -43,6 +46,10 @@ export default class Api extends Vue {
 
   created() {
     this.initApiDoc();
+  }
+
+  mounted() {
+    Bus.$on(BusEvent.API_FILTER, this.apiFilter);
   }
 
   /**
@@ -67,13 +74,13 @@ export default class Api extends Vue {
    * 处理一级（controller）节点
    */
   private apiDoc2Three() {
-    const three = [];
+    const three: TreeNodeData[] = [];
     const tags = this.apiDoc.tags;
     for (const tag of tags) {
       const children = this.getChildrenThree(tag.name);
       three.push({ label: tag.name, children: children });
     }
-    this.apiThree = three;
+    this.sourceApiTree = this.apiThree = three;
   }
 
   /**
@@ -81,7 +88,7 @@ export default class Api extends Vue {
    * @param tagName controller名称
    */
   private getChildrenThree(tagName: string) {
-    const children = [];
+    const children: TreeNodeData[] = [];
     const paths = this.apiDoc.paths;
     for (const path in paths) {
       for (const reqType in paths[path]) {
@@ -98,7 +105,7 @@ export default class Api extends Vue {
     return children;
   }
 
-  private clickNode(data: any, node: any) {
+  private openInNewTab(data: any, node: any) {
     if (node.level === 2) {
       Bus.$emit(BusEvent.OPEN_TAB, data.reqData, { type: BusEvent.OPEN_IN_NEW_TAB });
     }
@@ -125,20 +132,49 @@ export default class Api extends Vue {
   private menuSelect(command: string) {
     switch (command) {
       case "openInCurrentTab":
-        this.openInCurrentTab();
+        this.openInCurrentTab(this.reqData);
         break;
       case "openInBackgroundTab":
-        this.openInBackgroundTab();
+        this.openInBackgroundTab(this.reqData);
         break;
     }
   }
 
-  private openInCurrentTab() {
-    Bus.$emit(BusEvent.OPEN_TAB, this.reqData, { type: BusEvent.OPEN_IN_CURRENT_TAB });
+  private openInCurrentTab(reqData: RequesterData) {
+    Bus.$emit(BusEvent.OPEN_TAB, reqData, { type: BusEvent.OPEN_IN_CURRENT_TAB });
   }
 
-  private openInBackgroundTab() {
-    Bus.$emit(BusEvent.OPEN_TAB, this.reqData, { type: BusEvent.OPEN_IN_BACKGROUND_TAB });
+  private openInBackgroundTab(reqData: RequesterData) {
+    Bus.$emit(BusEvent.OPEN_TAB, reqData, { type: BusEvent.OPEN_IN_BACKGROUND_TAB });
+  }
+
+  /**
+   * 搜索
+   * @param value
+   */
+  private apiFilter(value: string) {
+    if (isBlank(value)) {
+      this.apiThree = this.sourceApiTree;
+      return;
+    }
+
+    const nodeList: TreeNodeData[] = [];
+    for (const node of this.sourceApiTree) {
+      if (node.label.indexOf(value) !== -1) {
+        nodeList.push(node);
+      } else if (node.children) {
+        const childNodeList = [];
+        for (const childNode of node.children) {
+          if (childNode.label.indexOf(value) !== -1) {
+            childNodeList.push(childNode);
+          }
+        }
+        if (childNodeList.length > 0) {
+          nodeList.push({ label: node.label, children: childNodeList });
+        }
+      }
+    }
+    this.apiThree = nodeList;
   }
 }
 </script>
