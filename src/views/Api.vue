@@ -49,7 +49,7 @@ export default class Api extends Vue {
   }
 
   mounted() {
-    Bus.$on(BusEvent.API_FILTER, this.apiFilter);
+    Bus.$on(BusEvent.SEARCH_API, this.search);
   }
 
   /**
@@ -152,7 +152,7 @@ export default class Api extends Vue {
    * 搜索
    * @param value
    */
-  private apiFilter(value: string) {
+  private search(value: string) {
     if (isBlank(value)) {
       this.apiThree = this.sourceApiTree;
       return;
@@ -165,7 +165,7 @@ export default class Api extends Vue {
       } else if (node.children) {
         const childNodeList = [];
         for (const childNode of node.children) {
-          if (childNode.label.indexOf(value) !== -1) {
+          if (childNode.reqData && childNode.reqData.includes(value)) {
             childNodeList.push(childNode);
           }
         }

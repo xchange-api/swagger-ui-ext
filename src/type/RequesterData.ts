@@ -153,6 +153,12 @@ export class RequesterData {
     return bodyExample;
   }
 
+  public includes(value: string): boolean {
+    return (this.url + "\n" + JSON.stringify(this.parameters) + "\n" + JSON.stringify(this.body) + "\n" + this.header)
+      .toLowerCase()
+      .includes(value.toLowerCase());
+  }
+
   /**
    * 生成schema样例
    */

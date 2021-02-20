@@ -68,9 +68,9 @@ export default class App extends Vue {
   @Watch("searchText", { immediate: false, deep: true })
   private searchTextChange(newText: string) {
     if (this.activeTabName === "api") {
-      Bus.$emit(BusEvent.API_FILTER, newText);
+      Bus.$emit(BusEvent.SEARCH_API, newText);
     } else if (this.activeTabName === "history") {
-      // Bus.$emit(BusEvent.API_FILTER, newText);
+      Bus.$emit(BusEvent.SEARCH_HISTORY, newText);
     } else if (this.activeTabName === "collection") {
       // Bus.$emit(BusEvent.API_FILTER, newText);
     }

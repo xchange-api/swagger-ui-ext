@@ -22,6 +22,7 @@ import { BusEvent } from "@/type/BusEvent";
 import historyDB from "@/api/HistoryDB";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { MenuData } from "@/type/ComponentType";
+import { isBlank } from "@/util/TextUtil";
 
 @Component({
   components: {
@@ -30,6 +31,8 @@ import { MenuData } from "@/type/ComponentType";
 })
 export default class History extends Vue {
   private history: Array<RequesterData> = [];
+
+  private sourceHistory: Array<RequesterData> = [];
 
   private reqData!: RequesterData;
 
@@ -47,11 +50,12 @@ export default class History extends Vue {
   created() {
     this.initHistory();
     Bus.$on(BusEvent.ADD_HISTORY, this.addHistory);
+    Bus.$on(BusEvent.SEARCH_HISTORY, this.search);
   }
 
   private initHistory() {
     historyDB.all().then((history: Array<RequesterData>) => {
-      this.history = history;
+      this.sourceHistory = this.history = history;
     });
   }
 
@@ -100,6 +104,14 @@ export default class History extends Vue {
         this.deleteHistory(this.reqData);
         break;
     }
+  }
+
+  private search(value: string) {
+    if (isBlank(value)) {
+      this.history = this.sourceHistory;
+      return;
+    }
+    this.history = this.history.filter(history => history.includes(value));
   }
 }
 </script>
