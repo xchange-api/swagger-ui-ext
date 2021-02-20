@@ -6,7 +6,7 @@ export class RequesterData {
 
   type: string;
 
-  host: string | undefined;
+  host?: string;
 
   url: string;
 
@@ -96,8 +96,10 @@ export class RequesterData {
     if (!this.containBody()) {
       return "";
     }
-    this.body = this.bodyExample();
-    return new JSONPrettier(JSON.stringify(this.bodyExample())).pretty();
+    if (!this.body) {
+      this.body = this.bodyExample();
+    }
+    return new JSONPrettier(JSON.stringify(this.body)).pretty();
   }
 
   set bodyStr(value: string) {
@@ -124,7 +126,7 @@ export class RequesterData {
    */
   public hashId() {
     this.timestamp = new Date().getTime();
-    const str = this.url + this.type + JSON.stringify(this.parameters) + JSON.stringify(this.body) + this.header;
+    const str = (this.host || "") + this.url + this.type;
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;

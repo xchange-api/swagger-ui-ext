@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 import Requester from "@/views/Requester.vue";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
@@ -93,7 +93,6 @@ export default class Tabs extends Vue {
    * @param content
    */
   private openInNewTab(title: string, name: string, content: RequesterData) {
-    debugger;
     // 存在同名的tab
     let tabName = name;
     if (this.tabList.find(value => value.name === name)) {

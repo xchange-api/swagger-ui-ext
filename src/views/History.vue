@@ -62,15 +62,9 @@ export default class History extends Vue {
   }
 
   private addHistory(reqData: RequesterData) {
-    for (let i = 0; i < this.history.length; i++) {
-      if (reqData.id === this.history[i].id) {
-        historyDB.remove(reqData);
-        this.history.slice(i);
-        break;
-      }
-    }
+    historyDB.remove(reqData);
     historyDB.add(reqData);
-    this.history.push(reqData);
+    this.initHistory();
   }
 
   /**
@@ -91,6 +85,7 @@ export default class History extends Vue {
 
   private deleteHistory(reqData: RequesterData) {
     historyDB.remove(reqData);
+    this.initHistory();
   }
 
   private menuSelect(command: string) {

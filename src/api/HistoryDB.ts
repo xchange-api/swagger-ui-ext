@@ -15,6 +15,7 @@ class HistoryDB extends Dexie {
   }
 
   public all() {
+    this.history.mapToClass(RequesterData);
     return this.history.toArray();
   }
 
