@@ -45,7 +45,7 @@ export default class Editor extends Vue {
     this.editor = monaco.editor.create(element, {
       model: this.model,
       minimap: { enabled: false },
-      contextmenu: false,
+      // contextmenu: false,
       automaticLayout: true // 当加载时被挂载的元素不可见时, monaco editor会设置为隐藏, 被挂载元素变为可见时不会自动更新为可见
     });
 
@@ -53,21 +53,11 @@ export default class Editor extends Vue {
     this.editor.addAction({
       id: "Full screen",
       label: "Full screen",
+      contextMenuGroupId: "1_modification",
+      contextMenuOrder: 5,
       keybindings: [monaco.KeyCode.F11],
       run: editor => {
         this.fullscreen = !this.fullscreen;
-      }
-    });
-
-    // ESC退出全屏
-    this.editor.addAction({
-      id: "Esc Full screen",
-      label: "Esc Full screen",
-      keybindings: [monaco.KeyCode.Escape],
-      run: editor => {
-        if (this.fullscreen) {
-          this.fullscreen = false;
-        }
       }
     });
   }
