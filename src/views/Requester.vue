@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <!--阻止oncontextmenu事件冒泡到tabs组件-->
+  <div @contextmenu.stop>
     <div style="display: flex;">
       <!--请求url start-->
       <el-input placeholder="enter request url" v-model="reqData.query">

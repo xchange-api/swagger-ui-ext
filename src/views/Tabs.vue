@@ -95,7 +95,7 @@ export default class Tabs extends Vue {
   private openInNewTab(title: string, name: string, content: RequesterData) {
     // 存在同名的tab
     let tabName = name;
-    if (this.tabList.find(value => value.name === name)) {
+    if (this.findTab(name)) {
       tabName += Math.round(Math.random() * 1000);
     }
     this.tabList.push({ title: title, name: tabName, content: content });
@@ -110,7 +110,7 @@ export default class Tabs extends Vue {
    */
   private openInCurrentTab(title: string, name: string, content: RequesterData) {
     // 替换当前的tab
-    const activeTab = this.tabList.find(value => value.name === this.activeTabName);
+    const activeTab = this.findTab(this.activeTabName);
     if (activeTab) {
       activeTab.title = title;
       activeTab.name = name;
@@ -128,7 +128,7 @@ export default class Tabs extends Vue {
   private openInBackgroundTab(title: string, name: string, content: RequesterData) {
     // 存在同名的tab
     let tabName = name;
-    if (this.tabList.find(value => value.name === name)) {
+    if (this.findTab(name)) {
       tabName += Math.round(Math.random() * 1000);
     }
     this.tabList.push({ title: title, name: tabName, content: content });
@@ -169,11 +169,10 @@ export default class Tabs extends Vue {
   }
 
   private showMenu(e: any) {
-    if (!e.target?.id) {
+    if (!e.target?.id || !this.findTab(e.target.id.replace("tab-", ""))) {
       return;
     }
-    const tabName = e.target.id;
-    this.tabName = tabName.replace("tab-", "");
+    this.tabName = e.target.id.replace("tab-", "");
     this.menuData.position = { top: e.pageY + "px", left: e.pageX + "px" };
     this.menuShow = true;
   }
@@ -264,7 +263,7 @@ export default class Tabs extends Vue {
   }
 
   private copyURL() {
-    const tab = this.tabList.find(value => value.name === this.tabName);
+    const tab = this.findTab(this.tabName);
     if (!tab) {
       return;
     }
@@ -272,11 +271,15 @@ export default class Tabs extends Vue {
   }
 
   private copyCURL() {
-    const tab = this.tabList.find(value => value.name === this.tabName);
+    const tab = this.findTab(this.tabName);
     if (!tab) {
       return;
     }
     this.copyToClipboard(buildCURL(tab.content));
+  }
+
+  private findTab(tabName: string) {
+    return this.tabList.find(value => value.name === tabName);
   }
 
   private copyToClipboard(value: string) {

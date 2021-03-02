@@ -1,8 +1,17 @@
 <template>
   <div v-show="show" class="menu" :style="{ ...data.position }" @mousedown.stop>
-    <ul>
-      <li v-for="item in data.items" :key="item.text" @click="notify(item.command)">{{ item.text }}</li>
-    </ul>
+    <table v-if="tipsExist()">
+      <tr v-for="item in data.items" :key="item.text" @click="notify(item.command)">
+        <td>{{ item.text }}</td>
+        <td>{{ item.tips }}</td>
+      </tr>
+    </table>
+
+    <table v-else>
+      <tr v-for="item in data.items" :key="item.text" @click="notify(item.command)">
+        <td>{{ item.text }}</td>
+      </tr>
+    </table>
   </div>
 </template>
 
@@ -37,6 +46,10 @@ export default class ContextMenu extends Vue {
   private hideMenu() {
     this.$emit("update:show", false);
   }
+
+  private tipsExist(): boolean {
+    return this.data.items.find(item => item.tips !== undefined) !== undefined;
+  }
 }
 </script>
 
@@ -51,20 +64,23 @@ export default class ContextMenu extends Vue {
   border-radius: 4px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 
-  ul {
-    margin: 0;
-    padding: 0;
-  }
-  ul li {
-    list-style: none;
-    margin: 0;
-    padding: 0 10px;
+  table {
     font-size: 14px;
-    line-height: 30px;
-    cursor: pointer;
-  }
-  ul li:hover {
-    background-color: #f5f7fa;
+    color: #606266;
+    tr {
+      cursor: pointer;
+    }
+    tr:hover {
+      background-color: #f5f7fa;
+    }
+    tr td:nth-child(1) {
+      text-align: left;
+      padding: 5px 8px;
+    }
+    tr td:nth-child(2) {
+      text-align: right;
+      padding: 5px 8px 5px 38px;
+    }
   }
 }
 </style>

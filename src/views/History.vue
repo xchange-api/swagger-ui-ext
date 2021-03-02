@@ -1,15 +1,17 @@
 <template>
   <div class="history">
-    <ul>
-      <li
-        v-for="item in history"
-        :key="item.id"
-        @click="openInNewTab(item)"
-        @contextmenu.prevent="showMenu($event, item)"
-      >
-        <span class="multi-line">{{ item.url }}</span>
-      </li>
-    </ul>
+    <scroll-bar>
+      <ul>
+        <li
+          v-for="item in history"
+          :key="item.id"
+          @click="openInNewTab(item)"
+          @contextmenu.prevent="showMenu($event, item)"
+        >
+          <span class="multi-line">{{ item.url }}</span>
+        </li>
+      </ul>
+    </scroll-bar>
     <context-menu :data="menuData" :show.sync="menuShow" @select="menuSelect" />
   </div>
 </template>
@@ -23,10 +25,12 @@ import historyDB from "@/api/HistoryDB";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { MenuData } from "@/type/ComponentType";
 import { isBlank } from "@/util/TextUtil";
+import ScrollBar from "@/components/ScrollBar.vue";
 
 @Component({
   components: {
-    ContextMenu
+    ContextMenu,
+    ScrollBar
   }
 })
 export default class History extends Vue {
@@ -121,6 +125,7 @@ export default class History extends Vue {
   ul {
     padding-left: 10px;
     margin: 0;
+    height: calc(100vh - 168px);
   }
   ul li {
     list-style: none;

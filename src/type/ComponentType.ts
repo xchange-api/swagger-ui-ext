@@ -9,6 +9,7 @@ export interface Tab {
 interface MenuItem {
   command: string;
   text: string;
+  tips?: string;
 }
 
 export interface MenuData {

@@ -1,11 +1,13 @@
 <!--api树-->
 <template>
   <div class="api">
-    <el-tree :data="apiThree" @node-click="openInNewTab" @node-contextmenu="showMenu">
-      <div slot-scope="{ node }">
-        <span class="multi-line">{{ node.label }}</span>
-      </div>
-    </el-tree>
+    <scroll-bar>
+      <el-tree class="tree" :data="apiThree" @node-click="openInNewTab" @node-contextmenu="showMenu">
+        <div slot-scope="{ node }">
+          <span class="multi-line">{{ node.label }}</span>
+        </div>
+      </el-tree>
+    </scroll-bar>
     <context-menu :data="menuData" :show.sync="menuShow" @select="menuSelect" />
   </div>
 </template>
@@ -19,10 +21,12 @@ import { RequesterData } from "@/type/RequesterData";
 import { MenuData, TreeNodeData } from "@/type/ComponentType";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { isBlank } from "@/util/TextUtil";
+import ScrollBar from "@/components/ScrollBar.vue";
 
 @Component({
   components: {
-    ContextMenu
+    ContextMenu,
+    ScrollBar
   }
 })
 export default class Api extends Vue {
@@ -194,6 +198,10 @@ export default class Api extends Vue {
       height: 100%;
       align-items: start;
     }
+  }
+
+  .tree {
+    height: calc(100vh - 168px);
   }
 }
 </style>

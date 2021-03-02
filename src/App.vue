@@ -102,14 +102,4 @@ $height: calc(100vh - 76px);
   cursor: col-resize;
   margin: 0 2px;
 }
-
-/**滚动条样式*/
-.aside-box::-webkit-scrollbar {
-  width: 5px;
-}
-.aside-box::-webkit-scrollbar-thumb {
-  border-radius: 5px;
-  -webkit-box-shadow: inset 0 0 5px #dcdfe6;
-  background: #dcdfe6;
-}
 </style>
