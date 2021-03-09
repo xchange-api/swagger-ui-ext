@@ -24,6 +24,8 @@ import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import * as monaco from "monaco-editor";
 import { fromBuffer, FileTypeResult } from "file-type";
 import { PrettierFactory } from "@/util/PrettierFactory";
+import { createObjectURL } from "@/util/Util";
+import { ElementBuilder } from "@/util/ElementBuilder";
 
 @Component({
   components: {}
@@ -102,27 +104,35 @@ export default class Response extends Vue {
    */
   private preview(arrayBuffer: ArrayBuffer, type: FileTypeResult) {
     if (type.mime === "application/pdf") {
-      const view = document.createElement("embed");
-      view.style.height = "100%";
-      view.style.width = "100%";
-      view.src = URL.createObjectURL(new Blob([arrayBuffer], { type: type.mime }));
+      const view = ElementBuilder.builder()
+        .type("embed")
+        .height("100%")
+        .width("100%")
+        .src(createObjectURL(arrayBuffer, type.mime))
+        .build();
       this.appendToResponse(view);
     } else if (Response.SUPPORT_VIDEO.includes(type.mime)) {
-      const view = document.createElement("video");
-      view.style.height = "100%";
-      view.style.width = "100%";
-      view.controls = true;
-      view.src = URL.createObjectURL(new Blob([arrayBuffer], { type: type.mime }));
+      const view = ElementBuilder.builder()
+        .type("video")
+        .height("100%")
+        .width("100%")
+        .controls("true")
+        .src(createObjectURL(arrayBuffer, type.mime))
+        .build();
       this.appendToResponse(view);
     } else if (Response.SUPPORT_AUDIO.includes(type.mime)) {
-      const view = document.createElement("audio");
-      view.style.width = "100%";
-      view.controls = true;
-      view.src = URL.createObjectURL(new Blob([arrayBuffer], { type: type.mime }));
+      const view = ElementBuilder.builder()
+        .type("audio")
+        .width("100%")
+        .controls("true")
+        .src(createObjectURL(arrayBuffer, type.mime))
+        .build();
       this.appendToResponse(view);
     } else if (Response.SUPPORT_IMAGE.includes(type.mime)) {
-      const view = document.createElement("img");
-      view.src = URL.createObjectURL(new Blob([arrayBuffer], { type: type.mime }));
+      const view = ElementBuilder.builder()
+        .type("img")
+        .src(createObjectURL(arrayBuffer, type.mime))
+        .build();
       this.appendToResponse(view);
     } else {
       this.textPreview(arrayBuffer);
