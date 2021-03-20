@@ -15,7 +15,16 @@ export function get(url: string, params: { [key: string]: any }) {
   });
 }
 
-function buildRequestConfig(reqData: RequesterData): AxiosRequestConfig {
+function buildRequestConfig(reqData: RequesterData, dataType?: string): AxiosRequestConfig {
+  let data = undefined;
+  if (dataType === "form") {
+    data = buildFormData(reqData.params(InType.FORM_DATA));
+  } else if (dataType === "raw") {
+    data = reqData.raw;
+  } else if (dataType === "binary") {
+    data = reqData.binary;
+  }
+
   return {
     url: reqData.url,
     method: reqData.type as Method,
@@ -24,7 +33,7 @@ function buildRequestConfig(reqData: RequesterData): AxiosRequestConfig {
       return pre;
     }, {}),
     headers: buildHeader(reqData.header),
-    data: buildFormData(reqData.params(InType.FORM_DATA)) || reqData.body,
+    data: data,
     responseType: "arraybuffer"
   };
 }
@@ -34,14 +43,14 @@ export function buildCURL(reqData: RequesterData): string {
     url: reqData.fullURL(),
     method: reqData.type as Method,
     headers: buildHeader(reqData.header),
-    data: buildFormData(reqData.params(InType.FORM_DATA)) || reqData.body
+    data: buildFormData(reqData.params(InType.FORM_DATA)) || reqData.raw
   });
 }
 
-export function request(reqData: RequesterData): Promise<AxiosResponse> {
+export function request(reqData: RequesterData, dataType?: string): Promise<AxiosResponse> {
   return new Promise((resolve, reject) => {
     axios
-      .request(buildRequestConfig(reqData))
+      .request(buildRequestConfig(reqData, dataType))
       .then(res => {
         resolve(res);
       })
@@ -77,13 +86,13 @@ function buildFormData(parameters: Parameter[]): FormData | undefined {
  * 构建请求头
  * @param value
  */
-function buildHeader(value: string): any {
+export function buildHeader(value: string): any {
   const header: { [key: string]: string } = {};
   if (value && value.includes(":")) {
     const lines = value.split("\r\n");
     for (const line of lines) {
       const idx = line.indexOf(":");
-      header[line.substring(0, idx)] = line.substring(idx + 1, line.length);
+      header[line.substring(0, idx).toLowerCase()] = line.substring(idx + 1, line.length);
     }
   }
   return header;

@@ -20,7 +20,9 @@ export class RequesterData {
 
   header!: string;
 
-  body!: any;
+  raw!: any;
+
+  binary!: File;
 
   timestamp!: number;
 
@@ -96,16 +98,16 @@ export class RequesterData {
     if (!this.containBody()) {
       return "";
     }
-    if (!this.body) {
-      this.body = this.bodyExample();
+    if (!this.raw) {
+      this.raw = this.bodyExample();
     }
-    return new JSONPrettier(JSON.stringify(this.body)).pretty();
+    return new JSONPrettier(JSON.stringify(this.raw)).pretty();
   }
 
   set bodyStr(value: string) {
     const json = isJSON(value);
     if (json) {
-      this.body = json;
+      this.raw = json;
     }
   }
 
@@ -154,7 +156,7 @@ export class RequesterData {
   }
 
   public includes(value: string): boolean {
-    return (this.url + "\n" + JSON.stringify(this.parameters) + "\n" + JSON.stringify(this.body) + "\n" + this.header)
+    return (this.url + "\n" + JSON.stringify(this.parameters) + "\n" + JSON.stringify(this.raw) + "\n" + this.header)
       .toLowerCase()
       .includes(value.toLowerCase());
   }

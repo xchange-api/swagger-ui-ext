@@ -11,53 +11,89 @@
     </div>
     <div>
       <el-tabs v-model="activeTabName">
-        <!--表单 start-->
-        <el-tab-pane label="Params" name="params">
-          <el-table :data="reqData.params('query', 'formData')" style="width: 100%">
-            <el-table-column prop="name" label="name" width="180">
-              <template slot-scope="scope">
-                <el-input v-model="scope.row.name"></el-input>
-              </template>
-            </el-table-column>
-            <el-table-column prop="value" label="value" width="180">
-              <template slot-scope="scope">
-                <!--文件选择或文本 start-->
-                <input
-                  v-if="scope.row.fileType === 'file' || scope.row.fileType === 'files'"
-                  type="file"
-                  :multiple="scope.row.fileType === 'files'"
-                  @change="selectFile(scope.row, $event)"
-                />
-                <el-input v-else v-model="scope.row.value"></el-input>
-                <!--文件选择或文本 end-->
-              </template>
-            </el-table-column>
-            <el-table-column prop="type" label="description"></el-table-column>
-          </el-table>
-        </el-tab-pane>
-        <!--表单 end-->
+        <!--授权 start-->
         <el-tab-pane label="Authorization" name="auth">
           <authorization />
         </el-tab-pane>
+        <!--授权 end-->
+
+        <!--请求头 start-->
         <el-tab-pane label="Header" name="header">
-          <editor :value.sync="reqData.header" language="plaintext" class="header-editor">
-            <template v-slot:placeholder>
-              <span class="placeholder" v-show="reqData.header === '' || reqData.header === undefined">
-                // Example<br />
-                Accept: application/json, text/plain, */*<br />
-                Accept-Language: zh-CN,zh;q=0.9
-              </span>
-            </template>
-          </editor>
+          <editor :value.sync="reqData.header" language="plaintext" class="header-editor"></editor>
         </el-tab-pane>
+        <!--请求头 start-->
+
+        <!--请求体 end-->
         <el-tab-pane label="Body" name="body" :disabled="!reqData.supportBody()">
-          <editor :value.sync="reqData.bodyStr" :language="language" class="body-editor"></editor>
+          <el-tabs v-model="reqBodyActiveTabName" type="border-card">
+            <!--表单 start-->
+            <el-tab-pane label="Form" name="form">
+              <div class="request-body">
+                <el-checkbox v-model="urlencoded" @change="urlencodedChange()">x-www-form-urlencoded</el-checkbox>
+                <el-table :data="reqData.params('formData')" style="width: 100%">
+                  <el-table-column prop="name" label="name" width="180">
+                    <template slot-scope="scope">
+                      <el-input v-model="scope.row.name"></el-input>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="value" label="value" width="180">
+                    <template slot-scope="scope">
+                      <!--文件选择或文本 start-->
+                      <input
+                        v-if="scope.row.fileType === 'file' || scope.row.fileType === 'files'"
+                        type="file"
+                        :multiple="scope.row.fileType === 'files'"
+                        @change="selectFile(scope.row, $event)"
+                      />
+                      <el-input v-else v-model="scope.row.value"></el-input>
+                      <!--文件选择或文本 end-->
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="type" label="description"></el-table-column>
+                </el-table>
+              </div>
+            </el-tab-pane>
+            <!--表单 end-->
+
+            <!--raw start-->
+            <el-tab-pane label="Raw" name="raw">
+              <editor :value.sync="reqData.bodyStr" :language="language" class="request-body"></editor>
+            </el-tab-pane>
+            <!--raw end-->
+
+            <!--二进制 start-->
+            <el-tab-pane label="Binary" name="binary">
+              <div class="request-body">
+                <input type="file" @change="selectBinaryFile($event)" />
+              </div>
+            </el-tab-pane>
+            <!--二进制 end-->
+
+            <!--content-type start-->
+            <el-tab-pane :disabled="true" v-if="reqBodyActiveTabName === 'raw'">
+              <el-dropdown slot="label">
+                <span class="el-dropdown-link">{{ contentType }}<i class="el-icon-arrow-down"/></span>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item
+                    v-for="item in contentTypes"
+                    :key="item.label"
+                    @click.prevent.native="changeContentType(item)"
+                  >
+                    {{ item.label }}
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </el-tab-pane>
+            <!--content-type end-->
+          </el-tabs>
         </el-tab-pane>
-        <!--http response start-->
+        <!--请求体 end-->
+
+        <!--响应 start-->
         <el-tab-pane label="Response" name="response" :disabled="!response">
           <response :response="response" :headers="respHeaders"></response>
         </el-tab-pane>
-        <!--http response end-->
+        <!--响应 end-->
       </el-tabs>
     </div>
   </div>
@@ -69,9 +105,10 @@ import { Parameter, RequesterData } from "@/type/RequesterData";
 import Response from "@/views/Response.vue";
 import Editor from "@/components/Editor.vue";
 import Authorization from "@/views/Authorization.vue";
-import { request } from "@/util/Http";
+import { buildHeader, request } from "@/util/Http";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
+import { isBlank } from "@/util/TextUtil";
 
 @Component({
   components: { Response, Editor, Authorization }
@@ -80,7 +117,9 @@ export default class Requester extends Vue {
   @Prop()
   private reqData!: RequesterData;
 
-  private activeTabName = "params";
+  private activeTabName = "header";
+
+  private reqBodyActiveTabName = "form";
 
   private language = "json";
 
@@ -88,8 +127,19 @@ export default class Requester extends Vue {
 
   private respHeaders: any = "";
 
+  private urlencoded = false;
+
+  private contentType = "application/json";
+
+  private contentTypes = [
+    { value: "json", label: "application/json" },
+    { value: "xml", label: "application/xml" },
+    { value: "xml", label: "text/xml" },
+    { value: "plaintext", label: "text/plain" }
+  ];
+
   private clickSend() {
-    request(this.reqData)
+    request(this.reqData, this.reqBodyActiveTabName)
       .then(res => {
         this.respHeaders = res.headers;
         this.response = res.data;
@@ -111,6 +161,59 @@ export default class Requester extends Vue {
   private selectFile(param: Parameter, event: any) {
     param.value = event.target.files;
   }
+
+  private selectBinaryFile(event: any) {
+    this.reqData.binary = event.target.files[0];
+  }
+
+  /**
+   * 表单使用x-www-form-urlencoded, 设置请求头
+   */
+  private urlencodedChange() {
+    this.reqData.header = this.reqData.header || "";
+    const headerMap = new Map<string, string>(Object.entries(buildHeader(this.reqData.header)));
+    /*const source = headerMap.get("content-type");
+    if (this.urlencoded) {
+      if (isBlank(source)) {
+        headerMap.set("content-type", "application/x-www-form-urlencoded");
+      } else {
+        headerMap.set("content-type", `${source};application/x-www-form-urlencoded`);
+      }
+    } else {
+      if (source === "application/x-www-form-urlencoded") {
+        headerMap.delete("content-type");
+      } else if (source) {
+        headerMap.set("content-type", source.replace(/application\/x-www-form-urlencoded/, ""));
+      }
+    }*/
+    debugger;
+    let type = headerMap.get("content-type");
+    if (this.urlencoded) {
+      if (isBlank(type)) {
+        headerMap.set("content-type", "application/x-www-form-urlencoded");
+      } else if (type && !type.includes("application/x-www-form-urlencoded")) {
+        type = type.split(";").join(";") + ";application/x-www-form-urlencoded";
+        headerMap.set("content-type", type);
+      }
+    } else {
+      if (type) {
+        const typeArray = type.split(";");
+        typeArray.splice(typeArray.indexOf("application/x-www-form-urlencoded"), 1);
+        type = typeArray.join(";");
+        if (isBlank(type)) {
+          headerMap.delete("content-type");
+        } else {
+          headerMap.set("content-type", type);
+        }
+      }
+    }
+    this.reqData.header = Array.from(headerMap.entries(), ([k, v]) => `${k}:${v}`).join("\r\n");
+  }
+
+  private changeContentType(type: any) {
+    this.contentType = type.label;
+    this.language = type.value;
+  }
 }
 </script>
 
@@ -125,11 +228,10 @@ export default class Requester extends Vue {
   color: #b7b7b7;
 }
 
-$height: calc(100vh - 246px);
 .header-editor {
-  height: $height;
+  height: calc(100vh - 246px);
 }
-.body-editor {
-  height: $height;
+.request-body {
+  height: calc(100vh - 317px);
 }
 </style>

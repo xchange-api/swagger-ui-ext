@@ -1,7 +1,6 @@
 <template>
   <div>
     <div ref="editorContainer" :class="fullscreen ? 'editor-fullscreen' : 'editor'"></div>
-    <div @click="focus"><slot name="placeholder"></slot></div>
   </div>
 </template>
 
@@ -67,11 +66,11 @@ export default class Editor extends Vue {
     monaco.editor.setModelLanguage(this.model, newLanguage);
   }
 
-  /**
-   * 点击placeholder时光标移到编辑器上
-   */
-  private focus() {
-    this.editor.focus();
+  @Watch("value", { immediate: false, deep: true })
+  private valueChange(newValue: string) {
+    if (newValue != this.editor.getValue()) {
+      this.editor.setValue(newValue);
+    }
   }
 }
 </script>
