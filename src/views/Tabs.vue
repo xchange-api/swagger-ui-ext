@@ -21,17 +21,17 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import Requester from "@/views/Requester.vue";
+import Request from "@/views/Request.vue";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
-import { RequesterData } from "@/type/RequesterData";
+import { RequestData } from "@/type/RequestData";
 import { MenuData, Tab } from "@/type/ComponentType";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { buildCURL } from "@/util/Http";
 
 @Component({
   components: {
-    Requester,
+    Requester: Request,
     ContextMenu
   }
 })
@@ -40,7 +40,7 @@ export default class Tabs extends Vue {
     {
       title: "new tab",
       name: "default",
-      content: RequesterData.DEFAULT()
+      content: RequestData.DEFAULT()
     }
   ];
 
@@ -67,7 +67,7 @@ export default class Tabs extends Vue {
   }
 
   private openTab() {
-    Bus.$on(BusEvent.OPEN_TAB, (reqData: RequesterData, option: any) => {
+    Bus.$on(BusEvent.OPEN_TAB, (reqData: RequestData, option: any) => {
       if (!option || !option.type) {
         return;
       }
@@ -92,7 +92,7 @@ export default class Tabs extends Vue {
    * @param name
    * @param content
    */
-  private openInNewTab(title: string, name: string, content: RequesterData) {
+  private openInNewTab(title: string, name: string, content: RequestData) {
     // 存在同名的tab
     let tabName = name;
     if (this.findTab(name)) {
@@ -108,7 +108,7 @@ export default class Tabs extends Vue {
    * @param name
    * @param content
    */
-  private openInCurrentTab(title: string, name: string, content: RequesterData) {
+  private openInCurrentTab(title: string, name: string, content: RequestData) {
     // 替换当前的tab
     const activeTab = this.findTab(this.activeTabName);
     if (activeTab) {
@@ -125,7 +125,7 @@ export default class Tabs extends Vue {
    * @param name
    * @param content
    */
-  private openInBackgroundTab(title: string, name: string, content: RequesterData) {
+  private openInBackgroundTab(title: string, name: string, content: RequestData) {
     // 存在同名的tab
     let tabName = name;
     if (this.findTab(name)) {
@@ -164,7 +164,7 @@ export default class Tabs extends Vue {
   private handleClick(tab: any, event: MouseEvent) {
     if (tab.name === "add") {
       event.preventDefault();
-      this.openInNewTab("addTab", "addTab", RequesterData.DEFAULT());
+      this.openInNewTab("addTab", "addTab", RequestData.DEFAULT());
     }
   }
 

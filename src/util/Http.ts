@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, Method, AxiosResponse } from "axios";
-import { InType, Parameter, RequesterData } from "@/type/RequesterData";
+import { InType, Parameter, RequestData } from "@/type/RequestData";
 import r2curl from "r2curl";
 
 export function get(url: string, params: { [key: string]: any }) {
@@ -15,7 +15,7 @@ export function get(url: string, params: { [key: string]: any }) {
   });
 }
 
-function buildRequestConfig(reqData: RequesterData, dataType?: string): AxiosRequestConfig {
+function buildRequestConfig(reqData: RequestData, dataType?: string): AxiosRequestConfig {
   let data = undefined;
   if (dataType === "form") {
     data = buildFormData(reqData.params(InType.FORM_DATA));
@@ -38,7 +38,7 @@ function buildRequestConfig(reqData: RequesterData, dataType?: string): AxiosReq
   };
 }
 
-export function buildCURL(reqData: RequesterData): string {
+export function buildCURL(reqData: RequestData): string {
   return r2curl({
     url: reqData.fullURL(),
     method: reqData.type as Method,
@@ -47,7 +47,7 @@ export function buildCURL(reqData: RequesterData): string {
   });
 }
 
-export function request(reqData: RequesterData, dataType?: string): Promise<AxiosResponse> {
+export function request(reqData: RequestData, dataType?: string): Promise<AxiosResponse> {
   return new Promise((resolve, reject) => {
     axios
       .request(buildRequestConfig(reqData, dataType))
@@ -86,13 +86,13 @@ function buildFormData(parameters: Parameter[]): FormData | undefined {
  * 构建请求头
  * @param value
  */
-export function buildHeader(value: string): any {
+export function buildHeader(value: string): { [key: string]: string } {
   const header: { [key: string]: string } = {};
   if (value && value.includes(":")) {
     const lines = value.split("\r\n");
     for (const line of lines) {
       const idx = line.indexOf(":");
-      header[line.substring(0, idx).toLowerCase()] = line.substring(idx + 1, line.length);
+      header[line.substring(0, idx)] = line.substring(idx + 1, line.length);
     }
   }
   return header;

@@ -1,7 +1,7 @@
 import { isJSON } from "@/util/TextUtil";
 import { JSONPrettier } from "@/util/PrettierFactory";
 
-export class RequesterData {
+export class RequestData {
   id!: number;
 
   type: string;
@@ -27,7 +27,7 @@ export class RequesterData {
   timestamp!: number;
 
   static DEFAULT() {
-    return new RequesterData("get", "", [], {});
+    return new RequestData("get", "", [], {});
   }
 
   constructor(type: string, url: string, parameters: Array<Parameter>, definitions: any, host?: string) {

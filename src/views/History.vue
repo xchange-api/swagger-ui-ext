@@ -18,7 +18,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { RequesterData } from "@/type/RequesterData";
+import { RequestData } from "@/type/RequestData";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
 import historyDB from "@/api/HistoryDB";
@@ -34,11 +34,11 @@ import ScrollBar from "@/components/ScrollBar.vue";
   }
 })
 export default class History extends Vue {
-  private history: Array<RequesterData> = [];
+  private history: Array<RequestData> = [];
 
-  private sourceHistory: Array<RequesterData> = [];
+  private sourceHistory: Array<RequestData> = [];
 
-  private reqData!: RequesterData;
+  private reqData!: RequestData;
 
   private menuData: MenuData = {
     items: [
@@ -58,18 +58,18 @@ export default class History extends Vue {
   }
 
   private initHistory() {
-    historyDB.all().then((history: Array<RequesterData>) => {
+    historyDB.all().then((history: Array<RequestData>) => {
       this.sourceHistory = this.history = history;
     });
   }
 
-  private showMenu(e: MouseEvent, data: RequesterData) {
+  private showMenu(e: MouseEvent, data: RequestData) {
     this.menuData.position = { top: e.pageY + "px", left: e.pageX + "px" };
     this.menuShow = true;
     this.reqData = data;
   }
 
-  private addHistory(reqData: RequesterData) {
+  private addHistory(reqData: RequestData) {
     historyDB.remove(reqData);
     historyDB.add(reqData);
     this.initHistory();
@@ -79,19 +79,19 @@ export default class History extends Vue {
    * 新窗口打开
    * @param reqData
    */
-  private openInNewTab(reqData: RequesterData) {
+  private openInNewTab(reqData: RequestData) {
     Bus.$emit(BusEvent.OPEN_TAB, reqData, { type: BusEvent.OPEN_IN_NEW_TAB });
   }
 
-  private openInCurrentTab(reqData: RequesterData) {
+  private openInCurrentTab(reqData: RequestData) {
     Bus.$emit(BusEvent.OPEN_TAB, reqData, { type: BusEvent.OPEN_IN_CURRENT_TAB });
   }
 
-  private openInBackgroundTab(reqData: RequesterData) {
+  private openInBackgroundTab(reqData: RequestData) {
     Bus.$emit(BusEvent.OPEN_TAB, reqData, { type: BusEvent.OPEN_IN_BACKGROUND_TAB });
   }
 
-  private deleteHistory(reqData: RequesterData) {
+  private deleteHistory(reqData: RequestData) {
     historyDB.remove(reqData);
     this.initHistory();
   }

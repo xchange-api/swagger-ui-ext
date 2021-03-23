@@ -44,8 +44,7 @@ export default class Editor extends Vue {
     this.editor = monaco.editor.create(element, {
       model: this.model,
       minimap: { enabled: false },
-      // contextmenu: false,
-      automaticLayout: true // 当加载时被挂载的元素不可见时, monaco editor会设置为隐藏, 被挂载元素变为可见时不会自动更新为可见
+      automaticLayout: true // 如果false,当加载时节点不可见下,editor会设置为隐藏,且不会自适应大小
     });
 
     // 全屏
@@ -68,7 +67,7 @@ export default class Editor extends Vue {
 
   @Watch("value", { immediate: false, deep: true })
   private valueChange(newValue: string) {
-    if (newValue != this.editor.getValue()) {
+    if (newValue !== this.editor.getValue()) {
       this.editor.setValue(newValue);
     }
   }

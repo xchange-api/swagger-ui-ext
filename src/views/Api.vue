@@ -17,7 +17,7 @@ import { Component, Vue } from "vue-property-decorator";
 import { get } from "@/util/Http";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
-import { RequesterData } from "@/type/RequesterData";
+import { RequestData } from "@/type/RequestData";
 import { MenuData, TreeNodeData } from "@/type/ComponentType";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { isBlank } from "@/util/TextUtil";
@@ -36,7 +36,7 @@ export default class Api extends Vue {
 
   private sourceApiTree: Array<TreeNodeData> = [];
 
-  private reqData!: RequesterData;
+  private reqData!: RequestData;
 
   private menuData: MenuData = {
     items: [
@@ -101,7 +101,7 @@ export default class Api extends Vue {
           const url = (this.apiDoc.basePath === "/" ? "" : this.apiDoc.basePath) + path;
           children.push({
             label: url,
-            reqData: new RequesterData(reqType, url, reqInfo.parameters, this.apiDoc.definitions, this.apiDoc.host)
+            reqData: new RequestData(reqType, url, reqInfo.parameters, this.apiDoc.definitions, this.apiDoc.host)
           });
         }
       }
@@ -144,11 +144,11 @@ export default class Api extends Vue {
     }
   }
 
-  private openInCurrentTab(reqData: RequesterData) {
+  private openInCurrentTab(reqData: RequestData) {
     Bus.$emit(BusEvent.OPEN_TAB, reqData, { type: BusEvent.OPEN_IN_CURRENT_TAB });
   }
 
-  private openInBackgroundTab(reqData: RequesterData) {
+  private openInBackgroundTab(reqData: RequestData) {
     Bus.$emit(BusEvent.OPEN_TAB, reqData, { type: BusEvent.OPEN_IN_BACKGROUND_TAB });
   }
 

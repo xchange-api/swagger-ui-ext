@@ -1,9 +1,9 @@
-import { RequesterData } from "@/type/RequesterData";
+import { RequestData } from "@/type/RequestData";
 
 export interface Tab {
   title: string;
   name: string;
-  content: RequesterData;
+  content: RequestData;
 }
 
 interface MenuItem {
@@ -20,5 +20,5 @@ export interface MenuData {
 export interface TreeNodeData {
   label: string;
   children?: Array<TreeNodeData>;
-  reqData?: RequesterData;
+  reqData?: RequestData;
 }

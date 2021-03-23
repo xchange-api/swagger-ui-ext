@@ -83,7 +83,7 @@ export default class Response extends Vue {
       minimap: { enabled: false },
       readOnly: true,
       contextmenu: false,
-      automaticLayout: true // 当加载时被挂载的元素不可见时, monaco editor会设置为隐藏, 被挂载元素变为可见时不会自动更新为可见
+      automaticLayout: true // 如果false,当加载时节点不可见下,editor会设置为隐藏,且不会自适应大小
     });
   }
 

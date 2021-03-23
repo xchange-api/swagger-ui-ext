@@ -19,7 +19,7 @@
 
         <!--请求头 start-->
         <el-tab-pane label="Header" name="header">
-          <editor :value.sync="reqData.header" language="plaintext" class="header-editor"></editor>
+          <request-header :value.sync="reqData.header" class="header-editor" />
         </el-tab-pane>
         <!--请求头 start-->
 
@@ -101,21 +101,21 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { Parameter, RequesterData } from "@/type/RequesterData";
+import { Parameter, RequestData } from "@/type/RequestData";
 import Response from "@/views/Response.vue";
 import Editor from "@/components/Editor.vue";
 import Authorization from "@/views/Authorization.vue";
 import { buildHeader, request } from "@/util/Http";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
-import { isBlank } from "@/util/TextUtil";
+import RequestHeader from "@/views/RequestHeader.vue";
 
 @Component({
-  components: { Response, Editor, Authorization }
+  components: { RequestHeader, Response, Editor, Authorization }
 })
-export default class Requester extends Vue {
+export default class Request extends Vue {
   @Prop()
-  private reqData!: RequesterData;
+  private reqData!: RequestData;
 
   private activeTabName = "header";
 
@@ -172,40 +172,10 @@ export default class Requester extends Vue {
   private urlencodedChange() {
     this.reqData.header = this.reqData.header || "";
     const headerMap = new Map<string, string>(Object.entries(buildHeader(this.reqData.header)));
-    /*const source = headerMap.get("content-type");
     if (this.urlencoded) {
-      if (isBlank(source)) {
-        headerMap.set("content-type", "application/x-www-form-urlencoded");
-      } else {
-        headerMap.set("content-type", `${source};application/x-www-form-urlencoded`);
-      }
+      headerMap.set("Content-Type", "application/x-www-form-urlencoded");
     } else {
-      if (source === "application/x-www-form-urlencoded") {
-        headerMap.delete("content-type");
-      } else if (source) {
-        headerMap.set("content-type", source.replace(/application\/x-www-form-urlencoded/, ""));
-      }
-    }*/
-    debugger;
-    let type = headerMap.get("content-type");
-    if (this.urlencoded) {
-      if (isBlank(type)) {
-        headerMap.set("content-type", "application/x-www-form-urlencoded");
-      } else if (type && !type.includes("application/x-www-form-urlencoded")) {
-        type = type.split(";").join(";") + ";application/x-www-form-urlencoded";
-        headerMap.set("content-type", type);
-      }
-    } else {
-      if (type) {
-        const typeArray = type.split(";");
-        typeArray.splice(typeArray.indexOf("application/x-www-form-urlencoded"), 1);
-        type = typeArray.join(";");
-        if (isBlank(type)) {
-          headerMap.delete("content-type");
-        } else {
-          headerMap.set("content-type", type);
-        }
-      }
+      headerMap.delete("Content-Type");
     }
     this.reqData.header = Array.from(headerMap.entries(), ([k, v]) => `${k}:${v}`).join("\r\n");
   }
