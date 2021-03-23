@@ -19,7 +19,7 @@
 
         <!--请求头 start-->
         <el-tab-pane label="Header" name="header">
-          <request-header :value.sync="reqData.header" class="header-editor" />
+          <request-header v-model="reqData.header" class="header-editor" />
         </el-tab-pane>
         <!--请求头 start-->
 

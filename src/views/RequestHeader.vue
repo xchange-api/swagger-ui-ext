@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
+import { Component, Model, Vue, Watch } from "vue-property-decorator";
 import * as monaco from "monaco-editor";
 import { createSuggestions } from "@/type/Suggestion";
 
@@ -15,7 +15,7 @@ export default class HeaderEditor extends Vue {
 
   static THEME = "header-theme";
 
-  @Prop()
+  @Model("change")
   private value!: string;
 
   private model!: monaco.editor.ITextModel;
@@ -79,6 +79,11 @@ export default class HeaderEditor extends Vue {
       return;
     }
     this.model = monaco.editor.createModel(this.value, HeaderEditor.LANG);
+
+    // 监听内容修改
+    this.model.onDidChangeContent(() => {
+      this.$emit("change", this.model.getValue());
+    });
 
     // 挂载编辑器
     this.editor = monaco.editor.create(element, {
