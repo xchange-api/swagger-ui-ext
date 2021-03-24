@@ -1,5 +1,12 @@
 <template>
-  <div ref="editorContainer" class="editor"></div>
+  <div>
+    <div ref="editorContainer" class="editor"></div>
+    <div @click="focus">
+      <div class="placeholder" v-show="value === '' || value === undefined">
+        <slot name="placeholder"></slot>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -101,10 +108,27 @@ export default class HeaderEditor extends Vue {
       this.editor.setValue(newValue);
     }
   }
+
+  /**
+   * 点击placeholder时光标移到编辑器上
+   */
+  private focus() {
+    this.editor.focus();
+  }
 }
 </script>
 
 <style lang="scss" scoped>
+/**编辑器placeholder*/
+.placeholder {
+  position: absolute;
+  left: 64px;
+  top: 0;
+  z-index: 1;
+  font-size: 14px;
+  color: #b7b7b7;
+}
+
 .editor {
   width: 100%;
   height: 100%;

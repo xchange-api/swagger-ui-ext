@@ -79,7 +79,7 @@ function buildFormData(parameters: Parameter[]): FormData | undefined {
       formData.append(parameter.name, parameter.value);
     }
   }
-  return parameters.length > 0 ? formData : undefined;
+  return formData.values().next().value ? formData : undefined;
 }
 
 /**
@@ -88,12 +88,13 @@ function buildFormData(parameters: Parameter[]): FormData | undefined {
  */
 export function buildHeader(value: string): { [key: string]: string } {
   const header: { [key: string]: string } = {};
-  if (value && value.includes(":")) {
-    const lines = value.split("\r\n");
-    for (const line of lines) {
-      const idx = line.indexOf(":");
-      header[line.substring(0, idx)] = line.substring(idx + 1, line.length);
+  const lines = value.split("\r\n");
+  for (const line of lines) {
+    if (!line.includes(":")) {
+      continue;
     }
+    const kv = line.split(":");
+    header[kv[0]] = kv[1];
   }
   return header;
 }

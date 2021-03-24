@@ -11,15 +11,17 @@
     </div>
     <div>
       <el-tabs v-model="activeTabName">
-        <!--授权 start-->
-        <el-tab-pane label="Authorization" name="auth">
-          <authorization />
-        </el-tab-pane>
-        <!--授权 end-->
-
         <!--请求头 start-->
         <el-tab-pane label="Header" name="header">
-          <request-header v-model="reqData.header" class="header-editor" />
+          <request-header v-model="reqData.header" class="header-editor">
+            <template v-slot:placeholder>
+              <span>
+                // Example<br />
+                Accept: application/json, text/plain, */*<br />
+                Accept-Language: zh-CN,zh;q=0.9
+              </span>
+            </template>
+          </request-header>
         </el-tab-pane>
         <!--请求头 start-->
 
@@ -104,14 +106,13 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import { Parameter, RequestData } from "@/type/RequestData";
 import Response from "@/views/Response.vue";
 import Editor from "@/components/Editor.vue";
-import Authorization from "@/views/Authorization.vue";
 import { buildHeader, request } from "@/util/Http";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
 import RequestHeader from "@/views/RequestHeader.vue";
 
 @Component({
-  components: { RequestHeader, Response, Editor, Authorization }
+  components: { RequestHeader, Response, Editor }
 })
 export default class Request extends Vue {
   @Prop()
@@ -188,16 +189,6 @@ export default class Request extends Vue {
 </script>
 
 <style lang="scss" scoped>
-/**请求头编辑器placeholder*/
-.placeholder {
-  position: absolute;
-  left: 64px;
-  top: 0;
-  z-index: 1;
-  font-size: 14px;
-  color: #b7b7b7;
-}
-
 .header-editor {
   height: calc(100vh - 246px);
 }

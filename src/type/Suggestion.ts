@@ -26,7 +26,7 @@ const header = [
   "If-Range"
 ];
 
-export function createSuggestions(range: IRange): any[] {
+export function createSuggestions(range: IRange): monaco.languages.CompletionItem[] {
   return header.map(value => createItem(value, range, value + ":"));
 }
 
