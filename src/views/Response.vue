@@ -2,12 +2,6 @@
 <template>
   <div>
     <el-tabs v-model="activeTabName" type="border-card">
-      <!--response body start-->
-      <el-tab-pane label="Body" name="body">
-        <div ref="responseContainer" class="response-body"></div>
-      </el-tab-pane>
-      <!--response body end-->
-
       <!--response header start-->
       <el-tab-pane label="Header" name="header">
         <ul class="response-header">
@@ -15,6 +9,12 @@
         </ul>
       </el-tab-pane>
       <!--response header end-->
+
+      <!--response body start-->
+      <el-tab-pane label="Body" name="body">
+        <div ref="responseContainer" class="response-body"></div>
+      </el-tab-pane>
+      <!--response body end-->
     </el-tabs>
   </div>
 </template>
@@ -61,6 +61,7 @@ export default class Response extends Vue {
    */
   @Watch("response", { immediate: false, deep: true })
   responseChange(newResponse: ArrayBuffer) {
+    this.clearResponseContainer();
     fromBuffer(newResponse).then(type => {
       if (type) {
         this.preview(newResponse, type);
@@ -145,6 +146,11 @@ export default class Response extends Vue {
       return;
     }
     response.appendChild(element);
+  }
+
+  private clearResponseContainer() {
+    const response = this.$refs.responseContainer as HTMLElement;
+    response?.childNodes?.forEach(node => node.remove());
   }
 }
 </script>

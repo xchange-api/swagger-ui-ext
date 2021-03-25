@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig, Method, AxiosResponse } from "axios";
 import { InType, Parameter, RequestData } from "@/type/RequestData";
 import r2curl from "r2curl";
+import { isBlank } from "@/util/TextUtil";
 
 export function get(url: string, params: { [key: string]: any }) {
   return new Promise((resolve, reject) => {
@@ -16,6 +17,7 @@ export function get(url: string, params: { [key: string]: any }) {
 }
 
 function buildRequestConfig(reqData: RequestData, dataType?: string): AxiosRequestConfig {
+  const headers = buildHeader(reqData.header);
   let data = undefined;
   if (dataType === "form") {
     data = buildFormData(reqData.params(InType.FORM_DATA));
@@ -23,6 +25,7 @@ function buildRequestConfig(reqData: RequestData, dataType?: string): AxiosReque
     data = reqData.raw;
   } else if (dataType === "binary") {
     data = reqData.binary;
+    addHeader(headers, "Content-Type", "application/octet-stream");
   }
 
   return {
@@ -32,7 +35,7 @@ function buildRequestConfig(reqData: RequestData, dataType?: string): AxiosReque
       pre[cur.name] = cur.value;
       return pre;
     }, {}),
-    headers: buildHeader(reqData.header),
+    headers: headers,
     data: data,
     responseType: "arraybuffer"
   };
@@ -88,6 +91,10 @@ function buildFormData(parameters: Parameter[]): FormData | undefined {
  */
 export function buildHeader(value: string): { [key: string]: string } {
   const header: { [key: string]: string } = {};
+  if (isBlank(value)) {
+    return header;
+  }
+
   const lines = value.split("\r\n");
   for (const line of lines) {
     if (!line.includes(":")) {
@@ -97,4 +104,12 @@ export function buildHeader(value: string): { [key: string]: string } {
     header[kv[0]] = kv[1];
   }
   return header;
+}
+
+function addHeader(header: { [key: string]: string }, key: string, value: string) {
+  for (const headerKey in header) {
+    if (headerKey.toLowerCase() === key.toLowerCase() && !header[headerKey].includes(value)) {
+      header[headerKey] = isBlank(header[headerKey]) ? value : header[headerKey] + ";" + value;
+    }
+  }
 }

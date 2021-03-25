@@ -149,9 +149,18 @@ export default class Request extends Vue {
         this.addHistory();
       })
       .catch(err => {
-        this.response = err.response.data;
-        this.respHeaders = err.response.headers;
-        this.activeTabName = "response";
+        if (err.response) {
+          this.$message.error("http status: " + err.response.status);
+          this.response = err.response.data;
+          this.respHeaders = err.response.headers;
+          this.activeTabName = "response";
+        } else if (err.request) {
+          // The request was made but no response was received
+          this.$message.error(err.request);
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          this.$message.error(err.message);
+        }
       });
   }
 

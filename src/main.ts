@@ -18,6 +18,7 @@ import {
 } from "element-ui";
 import "element-ui/lib/theme-chalk/index.css";
 import App from "./App.vue";
+import { Message } from "element-ui";
 
 Vue.use(Aside);
 Vue.use(Button);
@@ -36,6 +37,7 @@ Vue.use(Tabs);
 Vue.use(Tree);
 
 Vue.config.productionTip = false;
+Vue.prototype.$message = Message;
 
 new Vue({
   render: h => h(App)
