@@ -1,10 +1,12 @@
 import { isJSON } from "@/util/TextUtil";
 import { JSONPrettier } from "@/util/PrettierFactory";
 
-export class RequesterData {
+export class RequestData {
   id!: number;
 
   type: string;
+
+  host?: string;
 
   url: string;
 
@@ -18,19 +20,22 @@ export class RequesterData {
 
   header!: string;
 
-  body!: any;
+  raw!: any;
+
+  binary!: File;
 
   timestamp!: number;
 
   static DEFAULT() {
-    return new RequesterData("get", "", [], {});
+    return new RequestData("get", "", [], {});
   }
 
-  constructor(type: string, url: string, parameters: Array<Parameter>, definitions: any) {
+  constructor(type: string, url: string, parameters: Array<Parameter>, definitions: any, host?: string) {
     this.type = type;
     this.url = url;
     this.parameters = parameters;
     this.definitions = definitions;
+    this.host = host;
     this.init();
   }
 
@@ -93,14 +98,16 @@ export class RequesterData {
     if (!this.containBody()) {
       return "";
     }
-    this.body = this.bodyExample();
-    return new JSONPrettier(JSON.stringify(this.bodyExample())).pretty();
+    if (!this.raw) {
+      this.raw = this.bodyExample();
+    }
+    return new JSONPrettier(JSON.stringify(this.raw)).pretty();
   }
 
   set bodyStr(value: string) {
     const json = isJSON(value);
     if (json) {
-      this.body = json;
+      this.raw = json;
     }
   }
 
@@ -121,13 +128,17 @@ export class RequesterData {
    */
   public hashId() {
     this.timestamp = new Date().getTime();
-    const str = this.url + this.type + JSON.stringify(this.parameters) + JSON.stringify(this.body) + this.header;
+    const str = (this.host || "") + this.url + this.type;
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;
     }
     this.id = hash;
     return this.id;
+  }
+
+  public fullURL(): string {
+    return (this.host || "") + this.query;
   }
 
   /**
@@ -142,6 +153,12 @@ export class RequesterData {
       bodyExample = this.bodyJSONExample(parameter.schema);
     }
     return bodyExample;
+  }
+
+  public includes(value: string): boolean {
+    return (this.url + "\n" + JSON.stringify(this.parameters) + "\n" + JSON.stringify(this.raw) + "\n" + this.header)
+      .toLowerCase()
+      .includes(value.toLowerCase());
   }
 
   /**

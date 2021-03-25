@@ -1,18 +1,24 @@
-import { RequesterData } from "@/type/RequesterData";
+import { RequestData } from "@/type/RequestData";
 
 export interface Tab {
   title: string;
   name: string;
-  content: RequesterData;
+  content: RequestData;
 }
 
 interface MenuItem {
   command: string;
   text: string;
+  tips?: string;
 }
 
 export interface MenuData {
   items: Array<MenuItem>;
   position: { [key: string]: string };
-  display: boolean;
+}
+
+export interface TreeNodeData {
+  label: string;
+  children?: Array<TreeNodeData>;
+  reqData?: RequestData;
 }

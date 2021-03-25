@@ -1,12 +1,14 @@
 <!--api树-->
 <template>
-  <div>
-    <el-tree :data="apiThree" @node-click="clickNode" @node-contextmenu="showMenu">
-      <div slot-scope="{ node }">
-        <span class="multi-line">{{ node.label }}</span>
-      </div>
-    </el-tree>
-    <my-menu :data="menuData" @select="menuSelect" ref="apiMenu" />
+  <div class="api">
+    <scroll-bar>
+      <el-tree class="tree" :data="apiThree" @node-click="openInNewTab" @node-contextmenu="showMenu">
+        <div slot-scope="{ node }">
+          <span class="multi-line">{{ node.label }}</span>
+        </div>
+      </el-tree>
+    </scroll-bar>
+    <context-menu :data="menuData" :show.sync="menuShow" @select="menuSelect" />
   </div>
 </template>
 
@@ -15,37 +17,43 @@ import { Component, Vue } from "vue-property-decorator";
 import { get } from "@/util/Http";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
-import { RequesterData } from "@/type/RequesterData";
-import { MenuData } from "@/type/ComponentType";
-import Menu from "@/components/Menu.vue";
+import { RequestData } from "@/type/RequestData";
+import { MenuData, TreeNodeData } from "@/type/ComponentType";
+import ContextMenu from "@/components/ContextMenu.vue";
+import { isBlank } from "@/util/TextUtil";
+import ScrollBar from "@/components/ScrollBar.vue";
 
 @Component({
   components: {
-    MyMenu: Menu
+    ContextMenu,
+    ScrollBar
   }
 })
 export default class Api extends Vue {
   private apiDoc!: any;
 
-  private apiThree: Array<any> = [];
+  private apiThree: Array<TreeNodeData> = [];
 
-  private reqData!: RequesterData;
+  private sourceApiTree: Array<TreeNodeData> = [];
+
+  private reqData!: RequestData;
 
   private menuData: MenuData = {
     items: [
       { command: "openInCurrentTab", text: "当前标签打开" },
       { command: "openInBackgroundTab", text: "后台打开" }
     ],
-    display: false,
     position: { top: "0px", left: "0px" }
   };
+
+  private menuShow = false;
 
   created() {
     this.initApiDoc();
   }
 
   mounted() {
-    this.hideMenu();
+    Bus.$on(BusEvent.SEARCH_API, this.search);
   }
 
   /**
@@ -70,13 +78,13 @@ export default class Api extends Vue {
    * 处理一级（controller）节点
    */
   private apiDoc2Three() {
-    const three = [];
+    const three: TreeNodeData[] = [];
     const tags = this.apiDoc.tags;
     for (const tag of tags) {
       const children = this.getChildrenThree(tag.name);
       three.push({ label: tag.name, children: children });
     }
-    this.apiThree = three;
+    this.sourceApiTree = this.apiThree = three;
   }
 
   /**
@@ -84,15 +92,16 @@ export default class Api extends Vue {
    * @param tagName controller名称
    */
   private getChildrenThree(tagName: string) {
-    const children = [];
+    const children: TreeNodeData[] = [];
     const paths = this.apiDoc.paths;
-    for (const reqUrl in paths) {
-      for (const reqType in paths[reqUrl]) {
-        const reqInfo = paths[reqUrl][reqType];
+    for (const path in paths) {
+      for (const reqType in paths[path]) {
+        const reqInfo = paths[path][reqType];
         if (reqInfo.tags.includes(tagName)) {
+          const url = (this.apiDoc.basePath === "/" ? "" : this.apiDoc.basePath) + path;
           children.push({
-            label: reqUrl,
-            reqData: new RequesterData(reqType, reqUrl, reqInfo.parameters, this.apiDoc.definitions)
+            label: url,
+            reqData: new RequestData(reqType, url, reqInfo.parameters, this.apiDoc.definitions, this.apiDoc.host)
           });
         }
       }
@@ -100,7 +109,7 @@ export default class Api extends Vue {
     return children;
   }
 
-  private clickNode(data: any, node: any) {
+  private openInNewTab(data: any, node: any) {
     if (node.level === 2) {
       Bus.$emit(BusEvent.OPEN_TAB, data.reqData, { type: BusEvent.OPEN_IN_NEW_TAB });
     }
@@ -115,17 +124,9 @@ export default class Api extends Vue {
   private showMenu(e: MouseEvent, data: any, node: any) {
     if (node.level === 2) {
       this.menuData.position = { top: e.pageY + "px", left: e.pageX + "px" };
-      this.menuData.display = true;
+      this.menuShow = true;
       this.reqData = data.reqData;
     }
-  }
-
-  private hideMenu() {
-    document.onclick = event => {
-      if (this.menuData.display && event.target !== this.$refs.apiMenu) {
-        this.menuData.display = false;
-      }
-    };
   }
 
   /**
@@ -135,39 +136,72 @@ export default class Api extends Vue {
   private menuSelect(command: string) {
     switch (command) {
       case "openInCurrentTab":
-        this.openInCurrentTab();
+        this.openInCurrentTab(this.reqData);
         break;
       case "openInBackgroundTab":
-        this.openInBackgroundTab();
+        this.openInBackgroundTab(this.reqData);
         break;
     }
   }
 
-  private openInCurrentTab() {
-    Bus.$emit(BusEvent.OPEN_TAB, this.reqData, { type: BusEvent.OPEN_IN_CURRENT_TAB });
+  private openInCurrentTab(reqData: RequestData) {
+    Bus.$emit(BusEvent.OPEN_TAB, reqData, { type: BusEvent.OPEN_IN_CURRENT_TAB });
   }
 
-  private openInBackgroundTab() {
-    Bus.$emit(BusEvent.OPEN_TAB, this.reqData, { type: BusEvent.OPEN_IN_BACKGROUND_TAB });
+  private openInBackgroundTab(reqData: RequestData) {
+    Bus.$emit(BusEvent.OPEN_TAB, reqData, { type: BusEvent.OPEN_IN_BACKGROUND_TAB });
+  }
+
+  /**
+   * 搜索
+   * @param value
+   */
+  private search(value: string) {
+    if (isBlank(value)) {
+      this.apiThree = this.sourceApiTree;
+      return;
+    }
+
+    const nodeList: TreeNodeData[] = [];
+    for (const node of this.sourceApiTree) {
+      if (node.label.indexOf(value) !== -1) {
+        nodeList.push(node);
+      } else if (node.children) {
+        const childNodeList = [];
+        for (const childNode of node.children) {
+          if (childNode.reqData && childNode.reqData.includes(value)) {
+            childNodeList.push(childNode);
+          }
+        }
+        if (childNodeList.length > 0) {
+          nodeList.push({ label: node.label, children: childNodeList });
+        }
+      }
+    }
+    this.apiThree = nodeList;
   }
 }
 </script>
 
 <style lang="scss" scoped>
 .api {
+  /**多行文本*/
   .multi-line {
     overflow-wrap: break-word;
     word-break: break-all;
     overflow: hidden;
     height: auto;
   }
-
   /deep/ .el-tree-node {
     white-space: normal;
     .el-tree-node__content {
       height: 100%;
       align-items: start;
     }
+  }
+
+  .tree {
+    height: calc(100vh - 168px);
   }
 }
 </style>

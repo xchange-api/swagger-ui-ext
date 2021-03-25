@@ -1,0 +1,26 @@
+diff --git a/node_modules/monaco-editor/esm/vs/platform/actions/common/actions.js b/node_modules/monaco-editor/esm/vs/platform/actions/common/actions.js
+index d138c0d..8ec0df4 100644
+--- a/node_modules/monaco-editor/esm/vs/platform/actions/common/actions.js
++++ b/node_modules/monaco-editor/esm/vs/platform/actions/common/actions.js
+@@ -99,6 +99,21 @@ export const MenuRegistry = new class {
+         });
+     }
+     getMenuItems(id) {
++        /*覆盖源码 移除不需要的菜单项*/
++        let menus = this._menuItems;
++        let contextMenuEntry = [...menus].find(entry => entry[0]._debugName == "EditorContext");
++        let contextMenuLinks = contextMenuEntry[1];
++
++        let removableIds = ["editor.action.quickOutline", "editor.action.changeAll", "editor.action.quickCommand"];
++        let node = contextMenuLinks._first;
++        do {
++            if (node.element && node.element.command) {
++                let shouldRemove = removableIds.includes(node.element.command.id);
++                if (shouldRemove) { contextMenuLinks._remove(node)  }
++            }
++        } while ((node = node.next));
++        /*覆盖源码 移除不需要的菜单项*/
++
+         let result;
+         if (this._menuItems.has(id)) {
+             result = [...this._menuItems.get(id)];

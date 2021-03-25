@@ -1,6 +1,8 @@
 <template>
   <div class="tabs">
-    <my-menu :data="menuData" @select="menuSelect" ref="tabMenu" />
+    <context-menu :data="menuData" :show.sync="menuShow" @select="menuSelect">
+      <button @click="copyURL"></button>
+    </context-menu>
 
     <el-tabs
       v-model="activeTabName"
@@ -19,17 +21,18 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import Requester from "@/views/Requester.vue";
+import Request from "@/views/Request.vue";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
-import { RequesterData } from "@/type/RequesterData";
+import { RequestData } from "@/type/RequestData";
 import { MenuData, Tab } from "@/type/ComponentType";
-import Menu from "@/components/Menu.vue";
+import ContextMenu from "@/components/ContextMenu.vue";
+import { buildCURL } from "@/util/Http";
 
 @Component({
   components: {
-    Requester,
-    MyMenu: Menu
+    Requester: Request,
+    ContextMenu
   }
 })
 export default class Tabs extends Vue {
@@ -37,27 +40,34 @@ export default class Tabs extends Vue {
     {
       title: "new tab",
       name: "default",
-      content: RequesterData.DEFAULT()
+      content: RequestData.DEFAULT()
     }
   ];
 
   private activeTabName = "default";
 
-  private tabName!: string;
+  private tabName!: string; // 右键选中的tab
 
   private menuData: MenuData = {
     items: [
       { command: "closeRight", text: "关闭右侧" },
       { command: "closeLeft", text: "关闭左侧" },
       { command: "closeAll", text: "关闭全部" },
-      { command: "closeOther", text: "关闭其他" }
+      { command: "closeOther", text: "关闭其他" },
+      { command: "copyURL", text: "复制URL" },
+      { command: "copyCURL", text: "复制CURL" }
     ],
-    display: false,
     position: { top: "0px", left: "0px" }
   };
 
+  private menuShow = false;
+
   created() {
-    Bus.$on(BusEvent.OPEN_TAB, (reqData: RequesterData, option: any) => {
+    this.openTab();
+  }
+
+  private openTab() {
+    Bus.$on(BusEvent.OPEN_TAB, (reqData: RequestData, option: any) => {
       if (!option || !option.type) {
         return;
       }
@@ -76,20 +86,16 @@ export default class Tabs extends Vue {
     });
   }
 
-  mounted() {
-    this.hideMenu();
-  }
-
   /**
    * 在新tab打开
    * @param title
    * @param name
    * @param content
    */
-  private openInNewTab(title: string, name: string, content: RequesterData) {
+  private openInNewTab(title: string, name: string, content: RequestData) {
     // 存在同名的tab
     let tabName = name;
-    if (this.tabList.find(value => value.name === name)) {
+    if (this.findTab(name)) {
       tabName += Math.round(Math.random() * 1000);
     }
     this.tabList.push({ title: title, name: tabName, content: content });
@@ -102,9 +108,9 @@ export default class Tabs extends Vue {
    * @param name
    * @param content
    */
-  private openInCurrentTab(title: string, name: string, content: RequesterData) {
+  private openInCurrentTab(title: string, name: string, content: RequestData) {
     // 替换当前的tab
-    const activeTab = this.tabList.find(value => value.name === this.activeTabName);
+    const activeTab = this.findTab(this.activeTabName);
     if (activeTab) {
       activeTab.title = title;
       activeTab.name = name;
@@ -119,10 +125,10 @@ export default class Tabs extends Vue {
    * @param name
    * @param content
    */
-  private openInBackgroundTab(title: string, name: string, content: RequesterData) {
+  private openInBackgroundTab(title: string, name: string, content: RequestData) {
     // 存在同名的tab
     let tabName = name;
-    if (this.tabList.find(value => value.name === name)) {
+    if (this.findTab(name)) {
       tabName += Math.round(Math.random() * 1000);
     }
     this.tabList.push({ title: title, name: tabName, content: content });
@@ -158,26 +164,17 @@ export default class Tabs extends Vue {
   private handleClick(tab: any, event: MouseEvent) {
     if (tab.name === "add") {
       event.preventDefault();
-      this.openInNewTab("addTab", "addTab", RequesterData.DEFAULT());
+      this.openInNewTab("addTab", "addTab", RequestData.DEFAULT());
     }
   }
 
   private showMenu(e: any) {
-    if (!e.target?.id) {
+    if (!e.target?.id || !this.findTab(e.target.id.replace("tab-", ""))) {
       return;
     }
-    const tabName = e.target.id;
-    this.tabName = tabName.replace("tab-", "");
+    this.tabName = e.target.id.replace("tab-", "");
     this.menuData.position = { top: e.pageY + "px", left: e.pageX + "px" };
-    this.menuData.display = true;
-  }
-
-  private hideMenu() {
-    document.onclick = event => {
-      if (this.menuData.display && event.target !== this.$refs.tabMenu) {
-        this.menuData.display = false;
-      }
-    };
+    this.menuShow = true;
   }
 
   private menuSelect(command: string) {
@@ -193,6 +190,12 @@ export default class Tabs extends Vue {
         break;
       case "closeOther":
         this.closeOther();
+        break;
+      case "copyURL":
+        this.copyURL();
+        break;
+      case "copyCURL":
+        this.copyCURL();
         break;
     }
   }
@@ -257,6 +260,36 @@ export default class Tabs extends Vue {
         break;
       }
     }
+  }
+
+  private copyURL() {
+    const tab = this.findTab(this.tabName);
+    if (!tab) {
+      return;
+    }
+    this.copyToClipboard(tab.content.fullURL());
+  }
+
+  private copyCURL() {
+    const tab = this.findTab(this.tabName);
+    if (!tab) {
+      return;
+    }
+    this.copyToClipboard(buildCURL(tab.content));
+  }
+
+  private findTab(tabName: string) {
+    return this.tabList.find(value => value.name === tabName);
+  }
+
+  private copyToClipboard(value: string) {
+    const element = document.createElement("input");
+    element.setAttribute("value", value);
+    element.setAttribute("style", "position: absolute; left: -999px;");
+    document.body.appendChild(element);
+    element.select();
+    document.execCommand("copy");
+    document.body.removeChild(element);
   }
 }
 </script>
