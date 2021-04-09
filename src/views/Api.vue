@@ -76,6 +76,7 @@ export default class Api extends Vue {
 
   /**
    * 处理一级（controller）节点
+   * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
    */
   private apiDoc2Three() {
     const three: TreeNodeData[] = [];
@@ -90,6 +91,7 @@ export default class Api extends Vue {
   /**
    * 处理二级（方法）节点
    * @param tagName controller名称
+   * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
    */
   private getChildrenThree(tagName: string) {
     const children: TreeNodeData[] = [];

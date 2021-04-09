@@ -1,17 +1,34 @@
-import { isJSON } from "@/util/TextUtil";
+import { isBlank, isJSON } from "@/util/TextUtil";
 import { JSONPrettier } from "@/util/PrettierFactory";
 
 export class RequestData {
   id!: number;
 
+  /**
+   * 请求类型GET POST...
+   */
   type: string;
 
+  /**
+   * 协议+主机地址+端口
+   */
   host?: string;
 
+  /**
+   * 路径/后的内容
+   */
   url: string;
 
+  /**
+   * 解析swagger的api-doc后的信息
+   * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
+   */
   parameters: Array<Parameter>;
 
+  /**
+   * 解析swagger的api-doc后的信息
+   * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
+   */
   definitions!: any;
 
   consumes!: Array<string>;
@@ -26,6 +43,8 @@ export class RequestData {
 
   timestamp!: number;
 
+  editable?: boolean;
+
   static DEFAULT() {
     return new RequestData("get", "", [], {});
   }
@@ -36,6 +55,7 @@ export class RequestData {
     this.parameters = parameters;
     this.definitions = definitions;
     this.host = host;
+    this.editable = isBlank(url);
     this.init();
   }
 
@@ -77,11 +97,15 @@ export class RequestData {
   }
 
   set query(val: string) {
+    if (this.editable) {
+      this.url = val.includes("?") ? val.substring(0, val.indexOf("?")) : val;
+    }
+
     const indexOf = val.indexOf("?");
     if (indexOf < 0) {
       return;
     }
-    const query: any = {};
+    const query: { [key: string]: any } = {}; //query对象
     val
       .substring(indexOf + 1)
       .split("&")
@@ -89,6 +113,7 @@ export class RequestData {
         const kv = value.split("=");
         query[kv[0]] = kv[1];
       });
+    // 设置value
     for (const param of this.params(InType.QUERY)) {
       param.value = query[param.name];
     }
@@ -143,6 +168,7 @@ export class RequestData {
 
   /**
    * 生成requestBody样例
+   * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
    */
   public bodyExample() {
     let bodyExample;
