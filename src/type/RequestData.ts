@@ -1,5 +1,6 @@
 import { isBlank, isJSON } from "@/util/TextUtil";
 import { JSONPrettier } from "@/util/PrettierFactory";
+import URI from "urijs";
 
 export class RequestData {
   id!: number;
@@ -21,12 +22,14 @@ export class RequestData {
 
   /**
    * 解析swagger的api-doc后的信息
+   *
    * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
    */
   parameters: Array<Parameter>;
 
   /**
    * 解析swagger的api-doc后的信息
+   *
    * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
    */
   definitions!: any;
@@ -43,7 +46,13 @@ export class RequestData {
 
   timestamp!: number;
 
+  /**
+   * 新建的窗口可以任意编辑
+   * 从api列表打开的则不能任意编辑，例如url和请求方法
+   */
   editable?: boolean;
+
+  first = true;
 
   static DEFAULT() {
     return new RequestData("get", "", [], {});
@@ -78,44 +87,48 @@ export class RequestData {
   }
 
   get query(): string {
-    const params = this.params(InType.QUERY);
-    if (params.length < 1) {
-      return this.url;
+    if (this.first && this.url) {
+      // 第一次则拼接params
+      this.first = false;
+      const params = this.params(InType.QUERY);
+      this.url += buildQuery(params);
     }
-    let query = "?";
-    params.forEach((param, index) => {
-      query += param.name + "=";
-      if (param.value) {
-        query += param.value;
-      }
-      if (index < params.length - 1) {
-        query += "&";
-      }
-    });
 
-    return this.url + query;
+    return this.url;
   }
 
+  /**
+   * 如果是api列表打开只允许编辑参数
+   */
   set query(val: string) {
+    const newUrlParts = URI.parse(val);
+    const oldUrlParts = URI.parse(this.url);
+
     if (this.editable) {
-      this.url = val.includes("?") ? val.substring(0, val.indexOf("?")) : val;
+      if (newUrlParts.protocol) {
+        this.host = newUrlParts.protocol + "://";
+      }
+      if (newUrlParts.hostname) {
+        this.host += newUrlParts.hostname;
+      }
+      if (newUrlParts.port) {
+        this.host += `:${newUrlParts.port}`;
+      }
+    }
+
+    if (this.editable || newUrlParts.path === oldUrlParts.path) {
+      this.url = val;
     }
 
     const indexOf = val.indexOf("?");
-    if (indexOf < 0) {
-      return;
-    }
-    const query: { [key: string]: any } = {}; //query对象
-    val
-      .substring(indexOf + 1)
-      .split("&")
-      .forEach(value => {
-        const kv = value.split("=");
-        query[kv[0]] = kv[1];
-      });
-    // 设置value
-    for (const param of this.params(InType.QUERY)) {
-      param.value = query[param.name];
+    if (indexOf > 0) {
+      const query = parseQuery(val.substring(indexOf));
+      // 设置value
+      for (const param of this.params(InType.QUERY)) {
+        if (query[param.name]) {
+          param.value = query[param.name];
+        }
+      }
     }
   }
 
@@ -163,7 +176,7 @@ export class RequestData {
   }
 
   public fullURL(): string {
-    return (this.host || "") + this.query;
+    return (this.host || "") + this.url;
   }
 
   /**
@@ -185,6 +198,19 @@ export class RequestData {
     return (this.url + "\n" + JSON.stringify(this.parameters) + "\n" + JSON.stringify(this.raw) + "\n" + this.header)
       .toLowerCase()
       .includes(value.toLowerCase());
+  }
+
+  /**
+   * 检查参数
+   */
+  public checkParam(): string {
+    let msg = "";
+    for (const param of this.params(InType.QUERY)) {
+      if (param.required && (!param.value || (typeof param.value === "string" && isBlank(param.value)))) {
+        msg += param.name + " is required\r\n";
+      }
+    }
+    return msg;
   }
 
   /**
@@ -274,4 +300,29 @@ export enum FileType {
   NONE = "none",
   FILE = "file",
   FILES = "files"
+}
+
+/**
+ * INPUT ?name1=value1&name2=value2&name2=value3&name3=&name4
+ * OUTPUT { name1: "value1", name2: ["value2","value3"], name3: "", name4: null }
+ */
+function parseQuery(queryString: string): { [key: string]: any } {
+  return URI.parseQuery(queryString);
+}
+
+/**
+ * INPUT [{name: "name1", value: "value1"}, {name: "name2", value: ["value2","value3"]}, {name: "name3",value:""}]
+ * OUTPUT ?name1=value1&name2=value2&name2=value3&name3=
+ */
+function buildQuery(params: Parameter[]): string {
+  if (params.length < 1) {
+    return "";
+  }
+
+  const queryObj: { [key: string]: any } = {};
+  params.forEach(param => {
+    queryObj[param.name] = param.value || "";
+  });
+
+  return "?" + URI.buildQuery(queryObj);
 }

@@ -31,10 +31,6 @@ function buildRequestConfig(reqData: RequestData, dataType?: string): AxiosReque
   return {
     url: reqData.url,
     method: reqData.type as Method,
-    params: reqData.params(InType.QUERY).reduce((pre: any, cur) => {
-      pre[cur.name] = cur.value;
-      return pre;
-    }, {}),
     headers: headers,
     data: data,
     responseType: "arraybuffer"

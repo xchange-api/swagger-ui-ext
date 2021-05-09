@@ -2,15 +2,19 @@
   <!--阻止oncontextmenu事件冒泡到tabs组件-->
   <div @contextmenu.stop>
     <div style="display: flex;">
+      <!--请求方法 start-->
+      <el-select v-model="reqData.type" :disabled="!reqData.editable" class="request-methid">
+        <el-option v-for="item in methodOptions" :key="item.value" :label="item.label" :value="item.value" />
+      </el-select>
+      <!--请求方法 end-->
+
       <!--请求url start-->
-      <el-input placeholder="enter request url" v-model="reqData.query">
-        <template slot="prepend">{{ reqData.type }}</template>
-      </el-input>
+      <el-input placeholder="enter request url" v-model="reqData.query" :disabled="loading" />
       <!--请求url end-->
-      <el-button @click="clickSend" type="primary">send</el-button>
+      <el-button @click="clickSend" type="primary" :disabled="loading">send</el-button>
     </div>
     <div>
-      <el-tabs v-model="activeTabName">
+      <el-tabs v-model="activeTabName" v-loading="loading">
         <!--请求头 start-->
         <el-tab-pane label="Header" name="header">
           <request-header v-model="reqData.header" class="header-editor">
@@ -110,6 +114,7 @@ import { buildHeader, request } from "@/util/Http";
 import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
 import RequestHeader from "@/views/RequestHeader.vue";
+import { isBlank } from "@/util/TextUtil";
 
 @Component({
   components: { RequestHeader, Response, Editor }
@@ -139,9 +144,35 @@ export default class Request extends Vue {
     { value: "plaintext", label: "text/plain" }
   ];
 
+  private loading = false;
+
+  private methodOptions = [
+    { value: "get", label: "GET" },
+    { value: "post", label: "POST" },
+    { value: "put", label: "PUT" },
+    { value: "delete", label: "DELETE" },
+    { value: "patch", label: "PATCH" },
+    { value: "head", label: "HEAD" },
+    { value: "options", label: "OPTIONS" }
+  ];
+
   private clickSend() {
+    const checkParam = this.reqData.checkParam();
+    if (!isBlank(checkParam)) {
+      this.$message.error(checkParam);
+      return;
+    }
+
+    if (isBlank(this.reqData.url)) {
+      this.$message.error("url不能为空");
+      return;
+    }
+
+    this.loading = true;
+
     request(this.reqData, this.reqBodyActiveTabName)
       .then(res => {
+        this.loading = false;
         this.respHeaders = res.headers;
         this.response = res.data;
         this.activeTabName = "response";
@@ -149,11 +180,14 @@ export default class Request extends Vue {
         this.addHistory();
       })
       .catch(err => {
+        this.loading = false;
         if (err.response) {
           this.$message.error("http status: " + err.response.status);
           this.response = err.response.data;
           this.respHeaders = err.response.headers;
           this.activeTabName = "response";
+          this.reqData.hashId();
+          this.addHistory();
         } else if (err.request) {
           // The request was made but no response was received
           this.$message.error(err.request);
@@ -168,10 +202,16 @@ export default class Request extends Vue {
     Bus.$emit(BusEvent.ADD_HISTORY, this.reqData);
   }
 
+  /**
+   * 表单文件
+   */
   private selectFile(param: Parameter, event: any) {
     param.value = event.target.files;
   }
 
+  /**
+   * 请求体使用application/octet-stream
+   */
   private selectBinaryFile(event: any) {
     this.reqData.binary = event.target.files[0];
   }
@@ -203,5 +243,8 @@ export default class Request extends Vue {
 }
 .request-body {
   height: calc(100vh - 317px);
+}
+.request-methid {
+  width: 125px;
 }
 </style>
