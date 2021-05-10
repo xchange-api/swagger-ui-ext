@@ -1,4 +1,5 @@
 import { json, xml } from "vkbeautify";
+import { html } from "js-beautify";
 import { isHTML, isJSON, isXML } from "@/util/TextUtil";
 
 /**
@@ -57,7 +58,7 @@ export class HTMLPrettier implements Prettier {
   }
 
   pretty(): string {
-    return xml(this.value, 4);
+    return html(this.value);
   }
 }
 

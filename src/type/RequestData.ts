@@ -99,6 +99,8 @@ export class RequestData {
 
   /**
    * 如果是api列表打开只允许编辑参数
+   *
+   * @param val
    */
   set query(val: string) {
     const newUrlParts = URI.parse(val);
@@ -181,6 +183,7 @@ export class RequestData {
 
   /**
    * 生成requestBody样例
+   *
    * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
    */
   public bodyExample() {
@@ -205,16 +208,23 @@ export class RequestData {
    */
   public checkParam(): string {
     let msg = "";
+    const blankParams: string[] = [];
     for (const param of this.params(InType.QUERY)) {
       if (param.required && (!param.value || (typeof param.value === "string" && isBlank(param.value)))) {
-        msg += param.name + " is required\r\n";
+        // msg += param.name + " is required\r\n";
+        blankParams.push(param.name);
       }
+    }
+    if (blankParams.length > 0) {
+      msg = "参数: " + blankParams.join(", ") + "不能为空";
     }
     return msg;
   }
 
   /**
    * 生成schema样例
+   *
+   * @param schema
    */
   private bodyJSONExample(schema: Schema) {
     const type: string = schema.type;
@@ -305,6 +315,8 @@ export enum FileType {
 /**
  * INPUT ?name1=value1&name2=value2&name2=value3&name3=&name4
  * OUTPUT { name1: "value1", name2: ["value2","value3"], name3: "", name4: null }
+ *
+ * @param queryString
  */
 function parseQuery(queryString: string): { [key: string]: any } {
   return URI.parseQuery(queryString);
@@ -313,6 +325,8 @@ function parseQuery(queryString: string): { [key: string]: any } {
 /**
  * INPUT [{name: "name1", value: "value1"}, {name: "name2", value: ["value2","value3"]}, {name: "name3",value:""}]
  * OUTPUT ?name1=value1&name2=value2&name2=value3&name3=
+ *
+ * @param params
  */
 function buildQuery(params: Parameter[]): string {
   if (params.length < 1) {

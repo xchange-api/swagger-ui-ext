@@ -11,6 +11,7 @@
   "dependencies": {
     "@types/axios": "^0.14.0",
     "@types/file-type": "^10.9.1",
+    "@types/js-beautify": "^1.13.1",
     "@types/urijs": "^1.19.15",
     "@types/vkbeautify": "^0.99.2",
     "axios": "^0.21.1",
@@ -18,6 +19,7 @@
     "dexie": "^3.0.3",
     "element-ui": "^2.14.1",
     "file-type": "^16.1.0",
+    "js-beautify": "^1.13.13",
     "monaco-editor": "^0.21.2",
     "monaco-editor-webpack-plugin": "^2.0.0",
     "r2curl": "^0.2.4",

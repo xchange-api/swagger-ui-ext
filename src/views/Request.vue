@@ -3,20 +3,30 @@
   <div @contextmenu.stop>
     <div style="display: flex;">
       <!--请求方法 start-->
-      <el-select v-model="reqData.type" :disabled="!reqData.editable" class="request-methid">
+      <el-select v-model="reqData.type" :disabled="!reqData.editable" class="request-method">
         <el-option v-for="item in methodOptions" :key="item.value" :label="item.label" :value="item.value" />
       </el-select>
       <!--请求方法 end-->
 
       <!--请求url start-->
-      <el-input placeholder="enter request url" v-model="reqData.query" :disabled="loading" />
+      <el-input
+        placeholder="enter request url"
+        v-model="reqData.query"
+        :disabled="loading"
+        @keyup.enter.native="clickSend"
+      />
       <!--请求url end-->
+
       <el-button @click="clickSend" type="primary" :disabled="loading">send</el-button>
     </div>
     <div>
       <el-tabs v-model="activeTabName" v-loading="loading">
         <!--请求头 start-->
         <el-tab-pane label="Header" name="header">
+          <div slot="label">
+            Header
+            <span class="tips">{{ this.headerLength() }}</span>
+          </div>
           <request-header v-model="reqData.header" class="header-editor">
             <template v-slot:placeholder>
               <span>
@@ -96,8 +106,8 @@
         <!--请求体 end-->
 
         <!--响应 start-->
-        <el-tab-pane label="Response" name="response" :disabled="!response">
-          <response :response="response" :headers="respHeaders"></response>
+        <el-tab-pane label="Response" name="response" :disabled="!respData.data">
+          <response :resp-data="respData"></response>
         </el-tab-pane>
         <!--响应 end-->
       </el-tabs>
@@ -115,6 +125,7 @@ import Bus from "@/util/Bus";
 import { BusEvent } from "@/type/BusEvent";
 import RequestHeader from "@/views/RequestHeader.vue";
 import { isBlank } from "@/util/TextUtil";
+import { ResponseData } from "@/type/ResponseData";
 
 @Component({
   components: { RequestHeader, Response, Editor }
@@ -129,15 +140,13 @@ export default class Request extends Vue {
 
   private language = "json";
 
-  private response: any = "";
-
-  private respHeaders: any = "";
+  private respData = ResponseData.DEFAULT();
 
   private urlencoded = false;
 
   private contentType = "application/json";
 
-  private contentTypes = [
+  private contentTypes: OptionData[] = [
     { value: "json", label: "application/json" },
     { value: "xml", label: "application/xml" },
     { value: "xml", label: "text/xml" },
@@ -146,7 +155,7 @@ export default class Request extends Vue {
 
   private loading = false;
 
-  private methodOptions = [
+  private methodOptions: OptionData[] = [
     { value: "get", label: "GET" },
     { value: "post", label: "POST" },
     { value: "put", label: "PUT" },
@@ -159,12 +168,12 @@ export default class Request extends Vue {
   private clickSend() {
     const checkParam = this.reqData.checkParam();
     if (!isBlank(checkParam)) {
-      this.$message.error(checkParam);
+      this.$message.warning(checkParam);
       return;
     }
 
     if (isBlank(this.reqData.url)) {
-      this.$message.error("url不能为空");
+      this.$message.warning("url不能为空");
       return;
     }
 
@@ -173,8 +182,7 @@ export default class Request extends Vue {
     request(this.reqData, this.reqBodyActiveTabName)
       .then(res => {
         this.loading = false;
-        this.respHeaders = res.headers;
-        this.response = res.data;
+        this.respData = res;
         this.activeTabName = "response";
         this.reqData.hashId();
         this.addHistory();
@@ -183,8 +191,7 @@ export default class Request extends Vue {
         this.loading = false;
         if (err.response) {
           this.$message.error("http status: " + err.response.status);
-          this.response = err.response.data;
-          this.respHeaders = err.response.headers;
+          this.respData = err.response;
           this.activeTabName = "response";
           this.reqData.hashId();
           this.addHistory();
@@ -203,10 +210,11 @@ export default class Request extends Vue {
   }
 
   /**
-   * 表单文件
+   * 表单文件 multipart/form-data
    */
   private selectFile(param: Parameter, event: any) {
     param.value = event.target.files;
+    this.setRequestHeader("Content-Type", "multipart/form-data");
   }
 
   /**
@@ -214,6 +222,7 @@ export default class Request extends Vue {
    */
   private selectBinaryFile(event: any) {
     this.reqData.binary = event.target.files[0];
+    this.setRequestHeader("Content-Type", "application/octet-stream");
   }
 
   /**
@@ -230,9 +239,38 @@ export default class Request extends Vue {
     this.reqData.header = Array.from(headerMap.entries(), ([k, v]) => `${k}:${v}`).join("\r\n");
   }
 
-  private changeContentType(type: any) {
+  /**
+   * 修改请求内容类型
+   */
+  private changeContentType(type: OptionData) {
     this.contentType = type.label;
     this.language = type.value;
+    this.setRequestHeader("Content-Type", type.label);
+  }
+
+  /**
+   * 设置http请求头
+   *
+   * @param name
+   * @param value
+   */
+  private setRequestHeader(name: string, value: string) {
+    this.reqData.header = this.reqData.header || "";
+    const headerMap = new Map<string, string>(Object.entries(buildHeader(this.reqData.header)));
+    headerMap.set(name, value);
+    this.reqData.header = Array.from(headerMap.entries(), ([k, v]) => `${k}:${v}`).join("\r\n");
+  }
+
+  private headerLength(): string {
+    if (!this.reqData.header) {
+      return "";
+    }
+    const header = buildHeader(this.reqData.header);
+    if (!header) {
+      return "";
+    }
+    const length = Object.keys(header).length;
+    return length > 0 ? `(${length})` : "";
   }
 }
 </script>
@@ -244,7 +282,10 @@ export default class Request extends Vue {
 .request-body {
   height: calc(100vh - 317px);
 }
-.request-methid {
+.request-method {
   width: 125px;
+}
+.tips {
+  font-size: 10px;
 }
 </style>

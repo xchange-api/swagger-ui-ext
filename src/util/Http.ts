@@ -25,7 +25,6 @@ function buildRequestConfig(reqData: RequestData, dataType?: string): AxiosReque
     data = reqData.raw;
   } else if (dataType === "binary") {
     data = reqData.binary;
-    addHeader(headers, "Content-Type", "application/octet-stream");
   }
 
   return {
@@ -61,6 +60,7 @@ export function request(reqData: RequestData, dataType?: string): Promise<AxiosR
 
 /**
  * 构建表单
+ *
  * @param parameters
  */
 function buildFormData(parameters: Parameter[]): FormData | undefined {
@@ -83,6 +83,7 @@ function buildFormData(parameters: Parameter[]): FormData | undefined {
 
 /**
  * 构建请求头
+ *
  * @param value
  */
 export function buildHeader(value: string): { [key: string]: string } {
@@ -100,12 +101,4 @@ export function buildHeader(value: string): { [key: string]: string } {
     header[kv[0]] = kv[1];
   }
   return header;
-}
-
-function addHeader(header: { [key: string]: string }, key: string, value: string) {
-  for (const headerKey in header) {
-    if (headerKey.toLowerCase() === key.toLowerCase() && !header[headerKey].includes(value)) {
-      header[headerKey] = isBlank(header[headerKey]) ? value : header[headerKey] + ";" + value;
-    }
-  }
 }

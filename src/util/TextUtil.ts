@@ -1,5 +1,6 @@
 /**
  * 判断文本是否为json
+ *
  * @param data
  */
 export function isJSON(data: string) {
@@ -12,6 +13,7 @@ export function isJSON(data: string) {
 
 /**
  * 判断文本是否为xml
+ *
  * @param data
  */
 export function isXML(data: string) {
@@ -20,6 +22,7 @@ export function isXML(data: string) {
 
 /**
  * 判断文本是否为html
+ *
  * @param data
  */
 export function isHTML(data: string) {

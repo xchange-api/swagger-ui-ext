@@ -88,6 +88,7 @@ export default class Tabs extends Vue {
 
   /**
    * 在新tab打开
+   *
    * @param title
    * @param name
    * @param content
@@ -104,6 +105,7 @@ export default class Tabs extends Vue {
 
   /**
    * 在当前tab打开
+   *
    * @param title
    * @param name
    * @param content

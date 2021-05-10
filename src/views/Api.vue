@@ -71,11 +71,15 @@ export default class Api extends Vue {
         this.apiDoc = res;
         this.apiDoc2Three();
       })
-      .catch(e => console.error(e));
+      .catch(e => {
+        this.$message.error("无法获取swagger数据");
+        console.error(e);
+      });
   }
 
   /**
    * 处理一级（controller）节点
+   *
    * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
    */
   private apiDoc2Three() {
@@ -90,6 +94,7 @@ export default class Api extends Vue {
 
   /**
    * 处理二级（方法）节点
+   *
    * @param tagName controller名称
    * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
    */
@@ -119,6 +124,7 @@ export default class Api extends Vue {
 
   /**
    * 右键菜单
+   *
    * @param e
    * @param data
    * @param node
@@ -133,6 +139,7 @@ export default class Api extends Vue {
 
   /**
    * 右键菜单选择
+   *
    * @param command
    */
   private menuSelect(command: string) {
@@ -156,6 +163,7 @@ export default class Api extends Vue {
 
   /**
    * 搜索
+   *
    * @param value
    */
   private search(value: string) {

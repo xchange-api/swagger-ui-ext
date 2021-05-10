@@ -72,8 +72,7 @@ export default class History extends Vue {
 
   private checkHistoryId: number[] = [];
 
-  // private beforeTime = -2209017600000; // 1900年
-  private beforeTime!: number; // 1900年
+  private beforeTime!: number;
 
   created() {
     this.initHistory();
@@ -101,6 +100,7 @@ export default class History extends Vue {
 
   /**
    * 新窗口打开
+   *
    * @param reqData
    */
   private openInNewTab(reqData: RequestData) {
@@ -145,6 +145,9 @@ export default class History extends Vue {
   }
 
   private bulkRemove() {
+    if (!this.checkHistoryId || this.checkHistoryId.length < 1) {
+      this.$message.warning("请选择要删除的历史记录");
+    }
     historyDB.bulkRemove(this.checkHistoryId);
     this.initHistory();
     this.quitSelectModel();
@@ -183,6 +186,11 @@ export default class History extends Vue {
     }
   }
 
+  /**
+   * 搜索历史记录
+   *
+   * @param value
+   */
   private search(value: string) {
     if (isBlank(value)) {
       this.history = this.sourceHistory;

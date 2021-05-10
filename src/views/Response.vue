@@ -1,11 +1,14 @@
 <!--响应-->
 <template>
   <div>
+    <div class="http-status">
+      <div>Http status: {{ respData.status }}</div>
+    </div>
     <el-tabs v-model="activeTabName" type="border-card">
       <!--response header start-->
       <el-tab-pane label="Header" name="header">
         <ul class="response-header">
-          <li v-for="(value, key) in headers" :key="key">{{ key }}: {{ value }}</li>
+          <li v-for="(value, key) in respData.headers" :key="key">{{ key }}: {{ value }}</li>
         </ul>
       </el-tab-pane>
       <!--response header end-->
@@ -26,6 +29,7 @@ import { fromBuffer, FileTypeResult } from "file-type";
 import { PrettierFactory } from "@/util/PrettierFactory";
 import { createObjectURL } from "@/util/Util";
 import { ElementBuilder } from "@/util/ElementBuilder";
+import { ResponseData } from "@/type/ResponseData";
 
 @Component({
   components: {}
@@ -44,24 +48,22 @@ export default class Response extends Vue {
   ];
 
   @Prop()
-  private response: any = "";
+  private respData!: ResponseData;
 
   private model!: monaco.editor.ITextModel;
 
   private editor!: monaco.editor.IStandaloneCodeEditor;
 
-  @Prop()
-  private headers: any = "";
-
   private activeTabName = "body";
 
   /**
    * 监听响应, 按类型显示
+   *
    * @param newResponse
    */
-  @Watch("response", { immediate: false, deep: true })
+  @Watch("respData.data", { immediate: false, deep: true })
   responseChange(newResponse: ArrayBuffer) {
-    this.clearResponseContainer();
+    this.clearResponseContainer(); // 清空response
     fromBuffer(newResponse).then(type => {
       if (type) {
         this.preview(newResponse, type);
@@ -73,6 +75,7 @@ export default class Response extends Vue {
 
   /**
    * 设置编辑器内容
+   *
    * @param value
    * @param language
    */
@@ -90,6 +93,7 @@ export default class Response extends Vue {
 
   /**
    * 预览文本
+   *
    * @param arrayBuffer
    */
   private textPreview(arrayBuffer: ArrayBuffer) {
@@ -100,6 +104,7 @@ export default class Response extends Vue {
 
   /**
    * 预览多媒体格式
+   *
    * @param arrayBuffer
    * @param type
    */
@@ -162,5 +167,23 @@ export default class Response extends Vue {
 
 .response-header {
   height: calc(100vh - 349px);
+}
+
+/*http status code*/
+.http-status {
+  position: absolute;
+  width: 100%;
+  display: flex;
+  flex-direction: row-reverse;
+  div {
+    position: relative;
+    display: inline;
+    z-index: 1;
+    height: 39px;
+    line-height: 39px;
+    color: #409eff;
+    font-size: 14px;
+    padding: 0 20px;
+  }
 }
 </style>
