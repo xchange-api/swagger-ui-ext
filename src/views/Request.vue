@@ -4,7 +4,7 @@
     <div style="display: flex;">
       <!--请求方法 start-->
       <el-select v-model="reqData.type" :disabled="!reqData.editable" class="request-method">
-        <el-option v-for="item in methodOptions" :key="item.value" :label="item.label" :value="item.value" />
+        <el-option v-for="item in methodTypes" :key="item.value" :label="item.label" :value="item.value" />
       </el-select>
       <!--请求方法 end-->
 
@@ -122,7 +122,7 @@ import Response from "@/views/Response.vue";
 import Editor from "@/components/Editor.vue";
 import { buildHeader, request } from "@/util/Http";
 import Bus from "@/util/Bus";
-import { BusEvent } from "@/type/BusEvent";
+import { BusEvent, OptionData } from "@/type/ComponentType";
 import RequestHeader from "@/views/RequestHeader.vue";
 import { isBlank } from "@/util/TextUtil";
 import { ResponseData } from "@/type/ResponseData";
@@ -155,7 +155,7 @@ export default class Request extends Vue {
 
   private loading = false;
 
-  private methodOptions: OptionData[] = [
+  private methodTypes: OptionData[] = [
     { value: "get", label: "GET" },
     { value: "post", label: "POST" },
     { value: "put", label: "PUT" },

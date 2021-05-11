@@ -33,7 +33,7 @@ import Api from "@/views/Api.vue";
 import Tabs from "@/views/Tabs.vue";
 import History from "@/views/History.vue";
 import Bus from "@/util/Bus";
-import { BusEvent } from "@/type/BusEvent";
+import { BusEvent } from "@/type/ComponentType";
 
 @Component({
   components: {

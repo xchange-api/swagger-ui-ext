@@ -23,9 +23,8 @@
 import { Component, Vue } from "vue-property-decorator";
 import Request from "@/views/Request.vue";
 import Bus from "@/util/Bus";
-import { BusEvent } from "@/type/BusEvent";
 import { RequestData } from "@/type/RequestData";
-import { MenuData, Tab } from "@/type/ComponentType";
+import { MenuData, Tab, BusEvent } from "@/type/ComponentType";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { buildCURL } from "@/util/Http";
 

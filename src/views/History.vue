@@ -36,10 +36,9 @@
 import { Component, Vue } from "vue-property-decorator";
 import { RequestData } from "@/type/RequestData";
 import Bus from "@/util/Bus";
-import { BusEvent } from "@/type/BusEvent";
 import historyDB from "@/api/HistoryDB";
 import ContextMenu from "@/components/ContextMenu.vue";
-import { MenuData } from "@/type/ComponentType";
+import { MenuData, BusEvent } from "@/type/ComponentType";
 import { isBlank } from "@/util/TextUtil";
 import ScrollBar from "@/components/ScrollBar.vue";
 
@@ -145,8 +144,9 @@ export default class History extends Vue {
   }
 
   private bulkRemove() {
-    if (!this.checkHistoryId || this.checkHistoryId.length < 1) {
+    if (this.checkHistoryId?.length < 1) {
       this.$message.warning("请选择要删除的历史记录");
+      return;
     }
     historyDB.bulkRemove(this.checkHistoryId);
     this.initHistory();

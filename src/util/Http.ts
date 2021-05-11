@@ -94,11 +94,12 @@ export function buildHeader(value: string): { [key: string]: string } {
 
   const lines = value.split("\r\n");
   for (const line of lines) {
-    if (!line.includes(":")) {
+    const indexOf = line.indexOf(":");
+    if (indexOf < 1) {
       continue;
     }
-    const kv = line.split(":");
-    header[kv[0]] = kv[1];
+    const key = line.substring(0, indexOf);
+    header[key] = line.substring(indexOf + 1);
   }
   return header;
 }

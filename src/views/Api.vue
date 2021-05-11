@@ -16,9 +16,8 @@
 import { Component, Vue } from "vue-property-decorator";
 import { get } from "@/util/Http";
 import Bus from "@/util/Bus";
-import { BusEvent } from "@/type/BusEvent";
 import { RequestData } from "@/type/RequestData";
-import { MenuData, TreeNodeData } from "@/type/ComponentType";
+import { MenuData, TreeNodeData, BusEvent } from "@/type/ComponentType";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { isBlank } from "@/util/TextUtil";
 import ScrollBar from "@/components/ScrollBar.vue";
