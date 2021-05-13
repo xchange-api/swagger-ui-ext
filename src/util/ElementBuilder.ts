@@ -31,8 +31,11 @@ class ElementWrapper<K extends keyof HTMLElementTagNameMap> {
   }
 }
 
+/**
+ * 构建html元素
+ */
 export class ElementBuilder<K extends keyof HTMLElementTagNameMap> {
-  static builder() {
-    return new ElementWrapper();
+  static builder(tagName: keyof HTMLElementTagNameMap) {
+    return new ElementWrapper().type(tagName);
   }
 }

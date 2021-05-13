@@ -122,6 +122,7 @@ export default class Tabs extends Vue {
 
   /**
    * 在后台打开
+   *
    * @param title
    * @param name
    * @param content
@@ -137,6 +138,7 @@ export default class Tabs extends Vue {
 
   /**
    * 删除tab
+   *
    * @param targetName
    */
   private removeTab(targetName: string) {
@@ -158,7 +160,8 @@ export default class Tabs extends Vue {
   }
 
   /**
-   * 点击添加
+   * 点击标签
+   *
    * @param tab
    * @param event
    */
@@ -169,6 +172,9 @@ export default class Tabs extends Vue {
     }
   }
 
+  /**
+   * 显示菜单
+   */
   private showMenu(e: any) {
     if (!e.target?.id || !this.findTab(e.target.id.replace("tab-", ""))) {
       return;
@@ -247,11 +253,17 @@ export default class Tabs extends Vue {
     }
   }
 
+  /**
+   * 关闭全部标签
+   */
   private closeAll() {
     this.tabList = [];
     this.activeTabName = "";
   }
 
+  /**
+   * 关闭其他标签
+   */
   private closeOther() {
     const tabs = this.tabList;
     for (let i = 0; i < tabs.length; i++) {
@@ -263,6 +275,9 @@ export default class Tabs extends Vue {
     }
   }
 
+  /**
+   * 复制URL到剪切板
+   */
   private copyURL() {
     const tab = this.findTab(this.tabName);
     if (!tab) {
@@ -271,6 +286,9 @@ export default class Tabs extends Vue {
     this.copyToClipboard(tab.content.fullURL());
   }
 
+  /**
+   * 复制CURL到剪切板
+   */
   private copyCURL() {
     const tab = this.findTab(this.tabName);
     if (!tab) {
@@ -283,6 +301,11 @@ export default class Tabs extends Vue {
     return this.tabList.find(value => value.name === tabName);
   }
 
+  /**
+   * 复制到剪贴板
+   *
+   * @param value
+   */
   private copyToClipboard(value: string) {
     const element = document.createElement("input");
     element.setAttribute("value", value);

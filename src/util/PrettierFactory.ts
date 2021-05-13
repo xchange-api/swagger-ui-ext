@@ -1,6 +1,6 @@
 import { json, xml } from "vkbeautify";
 import { html } from "js-beautify";
-import { isHTML, isJSON, isXML } from "@/util/TextUtil";
+import { isHTML, isJSON, isXML } from "@/util/Util";
 
 /**
  * 格式化接口

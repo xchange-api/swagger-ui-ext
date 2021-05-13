@@ -1,4 +1,5 @@
 <template>
+  <!--滚动条-->
   <div class="scroll">
     <slot></slot>
   </div>

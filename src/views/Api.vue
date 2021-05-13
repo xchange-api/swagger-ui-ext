@@ -2,9 +2,20 @@
 <template>
   <div class="api">
     <scroll-bar>
-      <el-tree class="tree" :data="apiThree" @node-click="openInNewTab" @node-contextmenu="showMenu">
+      <el-tree
+        class="tree"
+        :data="apiThree"
+        @node-click="openInNewTab"
+        @node-contextmenu="showMenu"
+        node-key="label"
+        :default-expanded-keys="expandedKeys"
+      >
         <div slot-scope="{ node }">
-          <span class="multi-line">{{ node.label }}</span>
+          <span class="multi-line" v-if="node.level === 1">{{ node.label }}</span>
+          <span class="multi-line" v-if="node.level === 2">
+            <span class="method">{{ node.data.reqData.type }}</span>
+            {{ node.label }}
+          </span>
         </div>
       </el-tree>
     </scroll-bar>
@@ -19,7 +30,7 @@ import Bus from "@/util/Bus";
 import { RequestData } from "@/type/RequestData";
 import { MenuData, TreeNodeData, BusEvent } from "@/type/ComponentType";
 import ContextMenu from "@/components/ContextMenu.vue";
-import { isBlank } from "@/util/TextUtil";
+import { isBlank } from "@/util/Util";
 import ScrollBar from "@/components/ScrollBar.vue";
 
 @Component({
@@ -46,6 +57,8 @@ export default class Api extends Vue {
   };
 
   private menuShow = false;
+
+  private expandedKeys: string[] = [];
 
   created() {
     this.initApiDoc();
@@ -168,6 +181,7 @@ export default class Api extends Vue {
   private search(value: string) {
     if (isBlank(value)) {
       this.apiThree = this.sourceApiTree;
+      this.expandedKeys = [];
       return;
     }
 
@@ -183,6 +197,7 @@ export default class Api extends Vue {
           }
         }
         if (childNodeList.length > 0) {
+          this.expandedKeys.push(node.label);
           nodeList.push({ label: node.label, children: childNodeList });
         }
       }
@@ -211,6 +226,16 @@ export default class Api extends Vue {
 
   .tree {
     height: calc(100vh - 168px);
+  }
+
+  .method {
+    border: 1px solid #409eff;
+    border-radius: 2px;
+    display: inline-block;
+    padding: 2px 3px;
+    color: #fff;
+    background-color: #409eff;
+    font-size: 12px;
   }
 }
 </style>

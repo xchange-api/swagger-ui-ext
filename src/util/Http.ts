@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, Method, AxiosResponse } from "axios";
 import { InType, Parameter, RequestData } from "@/type/RequestData";
 import r2curl from "r2curl";
-import { isBlank } from "@/util/TextUtil";
+import { isBlank } from "@/util/Util";
 
 export function get(url: string, params: { [key: string]: any }) {
   return new Promise((resolve, reject) => {

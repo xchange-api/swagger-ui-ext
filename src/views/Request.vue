@@ -25,7 +25,7 @@
         <el-tab-pane label="Header" name="header">
           <div slot="label">
             Header
-            <span class="tips">{{ this.headerLength() }}</span>
+            <span class="tips">{{ this.headerAmount() }}</span>
           </div>
           <request-header v-model="reqData.header" class="header-editor">
             <template v-slot:placeholder>
@@ -124,7 +124,7 @@ import { buildHeader, request } from "@/util/Http";
 import Bus from "@/util/Bus";
 import { BusEvent, OptionData } from "@/type/ComponentType";
 import RequestHeader from "@/views/RequestHeader.vue";
-import { isBlank } from "@/util/TextUtil";
+import { isBlank } from "@/util/Util";
 import { ResponseData } from "@/type/ResponseData";
 
 @Component({
@@ -164,6 +164,25 @@ export default class Request extends Vue {
     { value: "head", label: "HEAD" },
     { value: "options", label: "OPTIONS" }
   ];
+
+  created() {
+    this.switchDefaultTab();
+  }
+
+  /**
+   * 切换默认tab
+   */
+  private switchDefaultTab() {
+    if (this.reqData.containBody()) {
+      this.activeTabName = "body";
+      this.reqBodyActiveTabName = "raw";
+    } else if (this.reqData.containForm()) {
+      this.activeTabName = "body";
+      this.reqBodyActiveTabName = "form";
+    } else if (this.reqData.supportBody()) {
+      this.activeTabName = "body";
+    }
+  }
 
   private clickSend() {
     const checkParam = this.reqData.checkParam();
@@ -205,6 +224,9 @@ export default class Request extends Vue {
       });
   }
 
+  /**
+   * 添加历史记录
+   */
   private addHistory() {
     Bus.$emit(BusEvent.ADD_HISTORY, this.reqData);
   }
@@ -261,7 +283,10 @@ export default class Request extends Vue {
     this.reqData.header = Array.from(headerMap.entries(), ([k, v]) => `${k}:${v}`).join("\r\n");
   }
 
-  private headerLength(): string {
+  /**
+   * 判断请求头数量
+   */
+  private headerAmount(): string {
     if (!this.reqData.header) {
       return "";
     }

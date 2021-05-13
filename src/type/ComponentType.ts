@@ -1,11 +1,17 @@
 import { RequestData } from "@/type/RequestData";
 
+/**
+ * 标签
+ */
 export interface Tab {
   title: string;
   name: string;
   content: RequestData;
 }
 
+/**
+ * 菜单项
+ */
 interface MenuItem {
   command: string;
   text: string;
@@ -17,12 +23,18 @@ export interface MenuData {
   position: { [key: string]: string };
 }
 
+/**
+ * api树结构
+ */
 export interface TreeNodeData {
   label: string;
   children?: Array<TreeNodeData>;
   reqData?: RequestData;
 }
 
+/**
+ * 事件
+ */
 export class BusEvent {
   static OPEN_IN_NEW_TAB = "open_in_new_tab"; //EventData: RequestData
   static OPEN_IN_CURRENT_TAB = "open_in_current_tab"; //EventData: RequestData
@@ -33,6 +45,9 @@ export class BusEvent {
   static SEARCH_HISTORY = "search_history";
 }
 
+/**
+ * 下拉选项
+ */
 export interface OptionData {
   value: string;
   label: string;

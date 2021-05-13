@@ -39,7 +39,7 @@ import Bus from "@/util/Bus";
 import historyDB from "@/api/HistoryDB";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { MenuData, BusEvent } from "@/type/ComponentType";
-import { isBlank } from "@/util/TextUtil";
+import { isBlank } from "@/util/Util";
 import ScrollBar from "@/components/ScrollBar.vue";
 
 @Component({

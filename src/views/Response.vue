@@ -110,16 +110,14 @@ export default class Response extends Vue {
    */
   private preview(arrayBuffer: ArrayBuffer, type: FileTypeResult) {
     if (type.mime === "application/pdf") {
-      const view = ElementBuilder.builder()
-        .type("embed")
+      const view = ElementBuilder.builder("embed")
         .height("100%")
         .width("100%")
         .src(createObjectURL(arrayBuffer, type.mime))
         .build();
       this.appendToResponse(view);
     } else if (Response.SUPPORT_VIDEO.includes(type.mime)) {
-      const view = ElementBuilder.builder()
-        .type("video")
+      const view = ElementBuilder.builder("video")
         .height("100%")
         .width("100%")
         .controls("true")
@@ -127,16 +125,14 @@ export default class Response extends Vue {
         .build();
       this.appendToResponse(view);
     } else if (Response.SUPPORT_AUDIO.includes(type.mime)) {
-      const view = ElementBuilder.builder()
-        .type("audio")
+      const view = ElementBuilder.builder("audio")
         .width("100%")
         .controls("true")
         .src(createObjectURL(arrayBuffer, type.mime))
         .build();
       this.appendToResponse(view);
     } else if (Response.SUPPORT_IMAGE.includes(type.mime)) {
-      const view = ElementBuilder.builder()
-        .type("img")
+      const view = ElementBuilder.builder("img")
         .src(createObjectURL(arrayBuffer, type.mime))
         .build();
       this.appendToResponse(view);

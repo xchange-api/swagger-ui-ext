@@ -1,4 +1,4 @@
-import { isBlank, isJSON } from "@/util/TextUtil";
+import { isBlank, isJSON } from "@/util/Util";
 import { JSONPrettier } from "@/util/PrettierFactory";
 import URI from "urijs";
 
@@ -159,6 +159,10 @@ export class RequestData {
     return this.params(InType.BODY).length > 0;
   }
 
+  public containForm(): boolean {
+    return this.params(InType.FORM_DATA).length > 0;
+  }
+
   public params(...inTypes: InType[]): Array<Parameter> {
     return this.parameters?.filter(param => (inTypes || []).includes(param.in)) || [];
   }
@@ -168,7 +172,8 @@ export class RequestData {
    */
   public hashId() {
     this.timestamp = new Date().getTime();
-    const str = (this.host || "") + this.url + this.type;
+    // 不计算文件的hash, 处理时间较长
+    const str = this.type + this.fullURL() + this.header + this.bodyStr;
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;
