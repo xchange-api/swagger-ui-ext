@@ -2,6 +2,7 @@ import Vue from "vue";
 import {
   Aside,
   Button,
+  ButtonGroup,
   Checkbox,
   CheckboxGroup,
   Container,
@@ -27,6 +28,7 @@ import { Message } from "element-ui";
 
 Vue.use(Aside);
 Vue.use(Button);
+Vue.use(ButtonGroup);
 Vue.use(Checkbox);
 Vue.use(CheckboxGroup);
 Vue.use(Container);

@@ -2,6 +2,9 @@ import { isBlank, isJSON } from "@/util/Util";
 import { JSONPrettier } from "@/util/PrettierFactory";
 import URI from "urijs";
 
+/**
+ * api文档解析的信息, 请求的信息
+ */
 export class RequestData {
   id!: number;
 

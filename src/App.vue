@@ -3,7 +3,7 @@
     <el-container>
       <el-header><div></div></el-header>
       <el-container>
-        <!--left side api collection and history-->
+        <!--左侧 api collection history-->
         <el-aside class="aside-box">
           <el-input placeholder="请输入内容" size="small" class="search" v-model="searchText">
             {{ searchText }}
@@ -19,8 +19,11 @@
             <el-tab-pane label="Collection" name="collection"></el-tab-pane>
           </el-tabs>
         </el-aside>
-        <div class="slider"></div>
-        <!--main page-->
+
+        <!--滑动条-->
+        <div class="slider" />
+
+        <!--右侧主页面-->
         <el-main class="main-box"><tabs /></el-main>
       </el-container>
     </el-container>
@@ -51,7 +54,9 @@ export default class App extends Vue {
     this.resize();
   }
 
-  /**侧边栏宽度调整*/
+  /**
+   * 侧边栏宽度调整
+   */
   private resize() {
     const aside = document.querySelector(".aside-box") as HTMLElement;
     const slider = document.querySelector(".slider") as HTMLElement;
@@ -65,6 +70,11 @@ export default class App extends Vue {
     };
   }
 
+  /**
+   * 搜索
+   *
+   * @param newText
+   */
   @Watch("searchText", { immediate: false, deep: true })
   private searchTextChange(newText: string) {
     if (this.activeTabName === "api") {

@@ -1,7 +1,7 @@
 <template>
   <!--阻止oncontextmenu事件冒泡到tabs组件-->
   <div @contextmenu.stop>
-    <div style="display: flex;">
+    <div class="method-url-container">
       <!--请求方法 start-->
       <el-select v-model="reqData.type" :disabled="!reqData.editable" class="request-method">
         <el-option v-for="item in methodTypes" :key="item.value" :label="item.label" :value="item.value" />
@@ -10,6 +10,7 @@
 
       <!--请求url start-->
       <el-input
+        class="request-url"
         placeholder="enter request url"
         v-model="reqData.query"
         :disabled="loading"
@@ -17,15 +18,19 @@
       />
       <!--请求url end-->
 
-      <el-button @click="clickSend" type="primary" :disabled="loading">send</el-button>
+      <!--发送 下载 start-->
+      <el-button-group class="send-btn-group">
+        <el-button @click="clickSend" type="primary" :disabled="loading" icon="">send</el-button>
+        <el-button @click="responseToFile" type="primary" :disabled="loading" icon="el-icon-download" />
+      </el-button-group>
+      <!--发送 下载 end-->
     </div>
     <div>
       <el-tabs v-model="activeTabName" v-loading="loading">
         <!--请求头 start-->
         <el-tab-pane label="Header" name="header">
           <div slot="label">
-            Header
-            <span class="tips">{{ this.headerAmount() }}</span>
+            Header<span class="tips">{{ this.headerAmount() }}</span>
           </div>
           <request-header v-model="reqData.header" class="header-editor">
             <template v-slot:placeholder>
@@ -107,7 +112,7 @@
 
         <!--响应 start-->
         <el-tab-pane label="Response" name="response" :disabled="!respData.data">
-          <response :resp-data="respData"></response>
+          <response :resp-data="respData" :save-to-file.sync="saveToFile"></response>
         </el-tab-pane>
         <!--响应 end-->
       </el-tabs>
@@ -138,14 +143,23 @@ export default class Request extends Vue {
 
   private reqBodyActiveTabName = "form";
 
+  /**
+   * 请求体编辑器语言类型
+   */
   private language = "json";
 
+  /**
+   * 响应的信息
+   */
   private respData = ResponseData.DEFAULT();
 
   private urlencoded = false;
 
   private contentType = "application/json";
 
+  /**
+   * 请求体类型
+   */
   private contentTypes: OptionData[] = [
     { value: "json", label: "application/json" },
     { value: "xml", label: "application/xml" },
@@ -155,6 +169,9 @@ export default class Request extends Vue {
 
   private loading = false;
 
+  /**
+   * 请求方法
+   */
   private methodTypes: OptionData[] = [
     { value: "get", label: "GET" },
     { value: "post", label: "POST" },
@@ -164,6 +181,8 @@ export default class Request extends Vue {
     { value: "head", label: "HEAD" },
     { value: "options", label: "OPTIONS" }
   ];
+
+  private saveToFile = false;
 
   created() {
     this.switchDefaultTab();
@@ -297,6 +316,14 @@ export default class Request extends Vue {
     const length = Object.keys(header).length;
     return length > 0 ? `(${length})` : "";
   }
+
+  /**
+   * response下载到文件
+   */
+  private responseToFile() {
+    this.saveToFile = true;
+    this.clickSend();
+  }
 }
 </script>
 
@@ -307,9 +334,25 @@ export default class Request extends Vue {
 .request-body {
   height: calc(100vh - 317px);
 }
-.request-method {
-  width: 125px;
+
+/*请求方法 url 发送按钮 下载按钮*/
+.method-url-container {
+  display: flex;
+  .request-method {
+    width: 125px;
+  }
+  .request-url {
+    width: calc(100% - 153px);
+  }
+  .send-btn-group {
+    width: 153px;
+    button {
+      height: 39.6px;
+    }
+  }
 }
+
+/*header个数提示*/
 .tips {
   font-size: 10px;
 }

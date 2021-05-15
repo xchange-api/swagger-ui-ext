@@ -35,6 +35,11 @@ import { ResponseData } from "@/type/ResponseData";
   components: {}
 })
 export default class Response extends Vue {
+  /**
+   * html支持的格式
+   *
+   * @see https://www.w3schools.com/html/html_media.asp
+   */
   private static SUPPORT_VIDEO = ["video/mp4", "video/webm", "video/ogg"];
   private static SUPPORT_AUDIO = ["audio/mpeg", "audio/mp4", "audio/ogg", "audio/x-wav"];
   private static SUPPORT_IMAGE = [
@@ -56,6 +61,9 @@ export default class Response extends Vue {
 
   private activeTabName = "body";
 
+  @Prop()
+  private saveToFile!: boolean;
+
   /**
    * 监听响应, 按类型显示
    *
@@ -65,7 +73,11 @@ export default class Response extends Vue {
   responseChange(newResponse: ArrayBuffer) {
     this.clearResponseContainer(); // 清空response
     fromBuffer(newResponse).then(type => {
-      if (type) {
+      if (this.saveToFile) {
+        const url = createObjectURL(newResponse, type?.mime);
+        this.responseSaveToFile(url, "file." + type?.ext || "txt");
+        this.$emit("update:saveToFile", false);
+      } else if (type) {
         this.preview(newResponse, type);
       } else {
         this.textPreview(newResponse);
@@ -152,6 +164,14 @@ export default class Response extends Vue {
   private clearResponseContainer() {
     const response = this.$refs.responseContainer as HTMLElement;
     response?.childNodes?.forEach(node => node.remove());
+  }
+
+  private responseSaveToFile(url: string, name: string) {
+    const a = document.createElement("a");
+    a.style.display = "none";
+    a.download = name;
+    a.href = url;
+    a.click();
   }
 }
 </script>

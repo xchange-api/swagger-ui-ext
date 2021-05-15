@@ -4,7 +4,7 @@
  * @param arrayBuffer
  * @param type
  */
-export function createObjectURL(arrayBuffer: ArrayBuffer, type: string) {
+export function createObjectURL(arrayBuffer: ArrayBuffer, type: string | undefined) {
   return URL.createObjectURL(new Blob([arrayBuffer], { type: type }));
 }
 

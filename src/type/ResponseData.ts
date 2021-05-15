@@ -1,3 +1,6 @@
+/**
+ * 请求响应的信息
+ */
 export class ResponseData {
   data: any;
   status: number;
