@@ -7,7 +7,7 @@
     <el-tabs v-model="activeTabName" type="border-card">
       <!--response header start-->
       <el-tab-pane label="Header" name="header">
-        <ul class="response-header">
+        <ul class="response-tab-content">
           <li v-for="(value, key) in respData.headers" :key="key">{{ key }}: {{ value }}</li>
         </ul>
       </el-tab-pane>
@@ -15,7 +15,7 @@
 
       <!--response body start-->
       <el-tab-pane label="Body" name="body">
-        <div ref="responseContainer" class="response-body"></div>
+        <div ref="responseContainer" class="response-tab-content"></div>
       </el-tab-pane>
       <!--response body end-->
     </el-tabs>
@@ -177,14 +177,6 @@ export default class Response extends Vue {
 </script>
 
 <style lang="scss" scoped>
-.response-body {
-  height: calc(100vh - 317px);
-}
-
-.response-header {
-  height: calc(100vh - 349px);
-}
-
 /*http status code*/
 .http-status {
   position: absolute;
@@ -201,5 +193,16 @@ export default class Response extends Vue {
     font-size: 14px;
     padding: 0 20px;
   }
+}
+
+ul.response-tab-content {
+  padding-left: 10px;
+  margin: 0;
+}
+ul.response-tab-content li {
+  list-style: none;
+  color: #606266;
+  font-size: 16px;
+  padding: 2px 0;
 }
 </style>

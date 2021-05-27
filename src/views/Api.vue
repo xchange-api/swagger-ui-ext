@@ -3,7 +3,7 @@
   <div class="api">
     <scroll-bar>
       <el-tree
-        class="tree"
+        class="aside-tab-content"
         :data="apiThree"
         @node-click="openInNewTab"
         @node-contextmenu="showMenu"
@@ -13,7 +13,7 @@
         <div slot-scope="{ node }">
           <span class="multi-line" v-if="node.level === 1">{{ node.label }}</span>
           <span class="multi-line" v-if="node.level === 2">
-            <span class="method">{{ node.data.reqData.type }}</span>
+            <span class="method">{{ node.data.reqData.type.toUpperCase() }}</span>
             {{ node.label }}
           </span>
         </div>
@@ -224,10 +224,7 @@ export default class Api extends Vue {
     }
   }
 
-  .tree {
-    height: calc(100vh - 168px);
-  }
-
+  /*请求方法*/
   .method {
     border: 1px solid #409eff;
     border-radius: 2px;

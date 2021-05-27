@@ -2,7 +2,7 @@
   <div class="history">
     <scroll-bar>
       <el-checkbox-group v-model="checkHistoryId">
-        <ul ref="ulContainer">
+        <ul ref="ulContainer" class="aside-tab-content">
           <li v-for="item in history" :key="item.id">
             <!--时间线 start-->
             <el-divider content-position="left" v-if="showTime(item)">
@@ -206,7 +206,6 @@ export default class History extends Vue {
   ul {
     padding-left: 10px;
     margin: 0;
-    height: calc(100vh - 168px);
   }
   ul li {
     list-style: none;

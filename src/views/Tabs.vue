@@ -11,7 +11,8 @@
       @tab-remove="removeTab"
       @contextmenu.prevent.native="showMenu($event)"
     >
-      <el-tab-pane v-for="item in tabList" :key="item.name" :label="item.title" :name="item.name" :closable="true">
+      <el-tab-pane v-for="item in tabList" :key="item.name" :name="item.name" :closable="true">
+        <span slot="label">{{ title(item.content) }}</span>
         <requester :req-data="item.content"></requester>
       </el-tab-pane>
       <el-tab-pane key="add" name="add" :closable="false" label="+"></el-tab-pane>
@@ -27,6 +28,7 @@ import { RequestData } from "@/type/RequestData";
 import { MenuData, Tab, BusEvent } from "@/type/ComponentType";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { buildCURL } from "@/util/Http";
+import { isBlank } from "@/util/Util";
 
 @Component({
   components: {
@@ -314,6 +316,15 @@ export default class Tabs extends Vue {
     element.select();
     document.execCommand("copy");
     document.body.removeChild(element);
+  }
+
+  /**
+   * 返回标题
+   *
+   * @param reqData
+   */
+  private title(reqData: RequestData) {
+    return isBlank(reqData.path()) ? "new tab" : reqData.path();
   }
 }
 </script>

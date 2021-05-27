@@ -230,6 +230,13 @@ export class RequestData {
   }
 
   /**
+   * path
+   */
+  public path(): string {
+    return URI.parse(this.url).path || "";
+  }
+
+  /**
    * 生成schema样例
    *
    * @param schema

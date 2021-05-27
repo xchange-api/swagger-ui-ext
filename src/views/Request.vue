@@ -49,7 +49,7 @@
           <el-tabs v-model="reqBodyActiveTabName" type="border-card">
             <!--表单 start-->
             <el-tab-pane label="Form" name="form">
-              <div class="request-body">
+              <div class="request-body-tab-content">
                 <el-checkbox v-model="urlencoded" @change="urlencodedChange()">x-www-form-urlencoded</el-checkbox>
                 <el-table :data="reqData.params('formData')" style="width: 100%">
                   <el-table-column prop="name" label="name" width="180">
@@ -78,13 +78,13 @@
 
             <!--raw start-->
             <el-tab-pane label="Raw" name="raw">
-              <editor :value.sync="reqData.bodyStr" :language="language" class="request-body"></editor>
+              <editor :value.sync="reqData.bodyStr" :language="language" class="request-body-tab-content"></editor>
             </el-tab-pane>
             <!--raw end-->
 
             <!--二进制 start-->
             <el-tab-pane label="Binary" name="binary">
-              <div class="request-body">
+              <div class="request-body-tab-content">
                 <input type="file" @change="selectBinaryFile($event)" />
               </div>
             </el-tab-pane>
@@ -328,13 +328,6 @@ export default class Request extends Vue {
 </script>
 
 <style lang="scss" scoped>
-.header-editor {
-  height: calc(100vh - 246px);
-}
-.request-body {
-  height: calc(100vh - 317px);
-}
-
 /*请求方法 url 发送按钮 下载按钮*/
 .method-url-container {
   display: flex;
@@ -355,5 +348,10 @@ export default class Request extends Vue {
 /*header个数提示*/
 .tips {
   font-size: 10px;
+}
+
+/*请求头组件高度*/
+.header-editor {
+  height: calc(100vh - 246px);
 }
 </style>
