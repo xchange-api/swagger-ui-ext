@@ -195,14 +195,15 @@ export default class Response extends Vue {
   }
 }
 
+/*response header*/
 ul.response-tab-content {
   padding-left: 10px;
   margin: 0;
-}
-ul.response-tab-content li {
-  list-style: none;
-  color: #606266;
-  font-size: 16px;
-  padding: 2px 0;
+  li {
+    list-style: none;
+    color: #606266;
+    font-size: 16px;
+    padding: 2px 0;
+  }
 }
 </style>

@@ -2,6 +2,7 @@ import axios, { AxiosRequestConfig, Method, AxiosResponse } from "axios";
 import { InType, Parameter, RequestData } from "@/type/RequestData";
 import r2curl from "r2curl";
 import { isBlank } from "@/util/Util";
+import URI from "urijs";
 
 export function get(url: string, params: { [key: string]: any }) {
   return new Promise((resolve, reject) => {
@@ -16,8 +17,45 @@ export function get(url: string, params: { [key: string]: any }) {
   });
 }
 
+function disableCache(headers: { [key: string]: string }) {
+  const headerKeys = Object.keys(headers);
+  let containCacheControl = false;
+  for (const headerKey of headerKeys) {
+    if ("cache-control" === headerKey.toLowerCase()) {
+      containCacheControl = true;
+      break;
+    }
+  }
+
+  if (!containCacheControl) {
+    headers["Cache-Control"] = "no-cache";
+  }
+}
+
 function buildRequestConfig(reqData: RequestData, dataType?: string): AxiosRequestConfig {
+  // 构建请求头
   const headers = buildHeader(reqData.header);
+
+  // 默认禁用缓存
+  disableCache(headers);
+
+  // 请求地址处理
+  let reqUrl;
+  const host = window.location.host;
+  const parts = URI.parse(reqData.url);
+  const reqHost = parts.hostname + (parts.port ? `:${parts.port}` : "");
+  if (!parts.hostname) {
+    reqUrl = reqData.url;
+  } else if (host !== reqHost) {
+    headers["api-target"] = reqData.url;
+    if (!parts.path) {
+      console.error(`error url: ${reqData.url}`);
+      return {};
+    }
+    reqUrl = "/proxy";
+  }
+
+  // 请求体
   let data = undefined;
   if (dataType === "form") {
     data = buildFormData(reqData.params(InType.FORM_DATA));
@@ -28,7 +66,7 @@ function buildRequestConfig(reqData: RequestData, dataType?: string): AxiosReque
   }
 
   return {
-    url: reqData.url,
+    url: reqUrl,
     method: reqData.type as Method,
     headers: headers,
     data: data,

@@ -172,11 +172,12 @@ export class RequestData {
 
   /**
    * hashId避免添加相同的历史记录
+   * 同一天同样的请求不做记录
    */
   public hashId() {
-    this.timestamp = new Date().getTime();
-    // 不计算文件的hash, 处理时间较长
-    const str = this.type + this.fullURL() + this.header + this.bodyStr;
+    const date = new Date();
+    this.timestamp = date.getTime();
+    const str = this.type + this.fullURL() + this.header + this.bodyStr + date.toLocaleDateString();
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;
@@ -233,7 +234,8 @@ export class RequestData {
    * path
    */
   public path(): string {
-    return URI.parse(this.url).path || "";
+    const indexOf = this.url.indexOf("?");
+    return indexOf > 0 ? this.url.substring(0, indexOf) : this.url;
   }
 
   /**

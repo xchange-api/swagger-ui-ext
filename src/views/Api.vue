@@ -229,7 +229,7 @@ export default class Api extends Vue {
     border: 1px solid #409eff;
     border-radius: 2px;
     display: inline-block;
-    padding: 1px 2px;
+    padding: 1px;
     color: #fff;
     background-color: #409eff;
     font-size: 12px;
