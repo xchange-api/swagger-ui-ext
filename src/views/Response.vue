@@ -75,7 +75,7 @@ export default class Response extends Vue {
     fromBuffer(newResponse).then(type => {
       if (this.saveToFile) {
         const url = createObjectURL(newResponse, type?.mime);
-        this.responseSaveToFile(url, "file." + type?.ext || "txt");
+        this.responseSaveToFile(url, "file." + (type?.ext || "txt"));
         this.$emit("update:saveToFile", false);
       } else if (type) {
         this.preview(newResponse, type);

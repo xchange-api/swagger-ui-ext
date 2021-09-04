@@ -14,7 +14,7 @@
           <span class="multi-line" v-if="node.level === 1">{{ node.label }}</span>
           <span class="multi-line" v-if="node.level === 2">
             <span class="method">{{ node.data.reqData.type.toUpperCase() }}</span>
-            {{ node.label }}
+            {{ node.data.reqData.url }}
           </span>
         </div>
       </el-tree>
@@ -97,6 +97,11 @@ export default class Api extends Vue {
   private apiDoc2Three() {
     const three: TreeNodeData[] = [];
     const tags = this.apiDoc.tags;
+    if (!tags) {
+      this.$message.error("v2/api-docs无数据, 请检查swagger配置");
+      return;
+    }
+
     for (const tag of tags) {
       const children = this.getChildrenThree(tag.name);
       three.push({ label: tag.name, children: children });
@@ -119,7 +124,7 @@ export default class Api extends Vue {
         if (reqInfo.tags.includes(tagName)) {
           const url = (this.apiDoc.basePath === "/" ? "" : this.apiDoc.basePath) + path;
           children.push({
-            label: url,
+            label: reqType + url,
             reqData: new RequestData(reqType, url, reqInfo.parameters, this.apiDoc.definitions, this.apiDoc.host)
           });
         }

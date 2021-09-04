@@ -106,24 +106,7 @@ export class RequestData {
    * @param val
    */
   set query(val: string) {
-    const newUrlParts = URI.parse(val);
-    const oldUrlParts = URI.parse(this.url);
-
-    if (this.editable) {
-      if (newUrlParts.protocol) {
-        this.host = newUrlParts.protocol + "://";
-      }
-      if (newUrlParts.hostname) {
-        this.host += newUrlParts.hostname;
-      }
-      if (newUrlParts.port) {
-        this.host += `:${newUrlParts.port}`;
-      }
-    }
-
-    if (this.editable || newUrlParts.path === oldUrlParts.path) {
-      this.url = val;
-    }
+    this.url = val;
 
     const indexOf = val.indexOf("?");
     if (indexOf > 0) {

@@ -11,7 +11,7 @@
       @tab-remove="removeTab"
       @contextmenu.prevent.native="showMenu($event)"
     >
-      <el-tab-pane v-for="item in tabList" :key="item.name" :closable="true">
+      <el-tab-pane v-for="item in tabList" :key="item.name" :name="item.name" :closable="true">
         <span class="tab-label" slot="label">{{ title(item.content) }}</span>
         <requester :req-data="item.content"></requester>
       </el-tab-pane>
@@ -39,7 +39,8 @@ import { isBlank } from "@/util/Util";
 export default class Tabs extends Vue {
   private tabList: Array<Tab> = [
     {
-      name: "new tab",
+      title: "new tab",
+      name: "default",
       content: RequestData.DEFAULT()
     }
   ];
@@ -74,13 +75,13 @@ export default class Tabs extends Vue {
 
       switch (option.type) {
         case BusEvent.OPEN_IN_NEW_TAB:
-          this.openInNewTab(reqData.url, reqData);
+          this.openInNewTab(reqData.url, reqData.url, reqData);
           break;
         case BusEvent.OPEN_IN_CURRENT_TAB:
-          this.openInCurrentTab(reqData.url, reqData);
+          this.openInCurrentTab(reqData.url, reqData.url, reqData);
           break;
         case BusEvent.OPEN_IN_BACKGROUND_TAB:
-          this.openInBackgroundTab(reqData.url, reqData);
+          this.openInBackgroundTab(reqData.url, reqData.url, reqData);
           break;
       }
     });
@@ -89,29 +90,32 @@ export default class Tabs extends Vue {
   /**
    * 在新tab打开
    *
+   * @param title
    * @param name
    * @param content
    */
-  private openInNewTab(name: string, content: RequestData) {
+  private openInNewTab(title: string, name: string, content: RequestData) {
     // 存在同名的tab
     let tabName = name;
     if (this.findTab(name)) {
       tabName += Math.round(Math.random() * 1000);
     }
-    this.tabList.push({ name: tabName, content: content });
+    this.tabList.push({ title: title, name: tabName, content: content });
     this.activeTabName = tabName;
   }
 
   /**
    * 在当前tab打开
    *
+   * @param title
    * @param name
    * @param content
    */
-  private openInCurrentTab(name: string, content: RequestData) {
+  private openInCurrentTab(title: string, name: string, content: RequestData) {
     // 替换当前的tab
     const activeTab = this.findTab(this.activeTabName);
     if (activeTab) {
+      activeTab.title = title;
       activeTab.name = name;
       activeTab.content = content;
     }
@@ -121,16 +125,17 @@ export default class Tabs extends Vue {
   /**
    * 在后台打开
    *
+   * @param title
    * @param name
    * @param content
    */
-  private openInBackgroundTab(name: string, content: RequestData) {
+  private openInBackgroundTab(title: string, name: string, content: RequestData) {
     // 存在同名的tab
     let tabName = name;
     if (this.findTab(name)) {
       tabName += Math.round(Math.random() * 1000);
     }
-    this.tabList.push({ name: tabName, content: content });
+    this.tabList.push({ title: title, name: tabName, content: content });
   }
 
   /**
@@ -165,7 +170,7 @@ export default class Tabs extends Vue {
   private handleClick(tab: any, event: MouseEvent) {
     if (tab.name === "add") {
       event.preventDefault();
-      this.openInNewTab("addTab", RequestData.DEFAULT());
+      this.openInNewTab("addTab", "addTab", RequestData.DEFAULT());
     }
   }
 
@@ -173,15 +178,12 @@ export default class Tabs extends Vue {
    * 显示菜单
    */
   private showMenu(e: any) {
-    if ("tab-label" === e.target?.className) {
-      this.tabName = e.target.parentNode.id.replace("tab-", "");
-      this.menuData.position = { top: e.pageY + "px", left: e.pageX + "px" };
-      this.menuShow = true;
-    } else if (e.target?.id && this.findTab(e.target.id.replace("tab-", ""))) {
-      this.tabName = e.target.id.replace("tab-", "");
-      this.menuData.position = { top: e.pageY + "px", left: e.pageX + "px" };
-      this.menuShow = true;
+    if (!e.target?.id || !this.findTab(e.target.id.replace("tab-", ""))) {
+      return;
     }
+    this.tabName = e.target.id.replace("tab-", "");
+    this.menuData.position = { top: e.pageY + "px", left: e.pageX + "px" };
+    this.menuShow = true;
   }
 
   private menuSelect(command: string) {

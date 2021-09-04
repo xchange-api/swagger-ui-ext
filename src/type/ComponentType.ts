@@ -4,6 +4,7 @@ import { RequestData } from "@/type/RequestData";
  * 标签
  */
 export interface Tab {
+  title: string;
   name: string; // el-tab-pane的id
   content: RequestData;
 }
