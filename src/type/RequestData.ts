@@ -1,17 +1,40 @@
-import { isJSON } from "@/util/TextUtil";
+import { isBlank, isJSON } from "@/util/Util";
 import { JSONPrettier } from "@/util/PrettierFactory";
+import URI from "urijs";
 
+/**
+ * api文档解析的信息, 请求的信息
+ */
 export class RequestData {
   id!: number;
 
+  /**
+   * 请求类型GET POST...
+   */
   type: string;
 
+  /**
+   * 协议+主机地址+端口
+   */
   host?: string;
 
+  /**
+   * 路径/后的内容
+   */
   url: string;
 
+  /**
+   * 解析swagger的api-doc后的信息
+   *
+   * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
+   */
   parameters: Array<Parameter>;
 
+  /**
+   * 解析swagger的api-doc后的信息
+   *
+   * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
+   */
   definitions!: any;
 
   consumes!: Array<string>;
@@ -26,6 +49,14 @@ export class RequestData {
 
   timestamp!: number;
 
+  /**
+   * 新建的窗口可以任意编辑
+   * 从api列表打开的则不能任意编辑，例如url和请求方法
+   */
+  editable?: boolean;
+
+  first = true;
+
   static DEFAULT() {
     return new RequestData("get", "", [], {});
   }
@@ -36,6 +67,7 @@ export class RequestData {
     this.parameters = parameters;
     this.definitions = definitions;
     this.host = host;
+    this.editable = isBlank(url);
     this.init();
   }
 
@@ -58,39 +90,33 @@ export class RequestData {
   }
 
   get query(): string {
-    const params = this.params(InType.QUERY);
-    if (params.length < 1) {
-      return this.url;
+    if (this.first && this.url) {
+      // 第一次则拼接params
+      this.first = false;
+      const params = this.params(InType.QUERY);
+      this.url += buildQuery(params);
     }
-    let query = "?";
-    params.forEach((param, index) => {
-      query += param.name + "=";
-      if (param.value) {
-        query += param.value;
-      }
-      if (index < params.length - 1) {
-        query += "&";
-      }
-    });
 
-    return this.url + query;
+    return this.url;
   }
 
+  /**
+   * 如果是api列表打开只允许编辑参数
+   *
+   * @param val
+   */
   set query(val: string) {
+    this.url = val;
+
     const indexOf = val.indexOf("?");
-    if (indexOf < 0) {
-      return;
-    }
-    const query: any = {};
-    val
-      .substring(indexOf + 1)
-      .split("&")
-      .forEach(value => {
-        const kv = value.split("=");
-        query[kv[0]] = kv[1];
-      });
-    for (const param of this.params(InType.QUERY)) {
-      param.value = query[param.name];
+    if (indexOf > 0) {
+      const query = parseQuery(val.substring(indexOf));
+      // 设置value
+      for (const param of this.params(InType.QUERY)) {
+        if (query[param.name]) {
+          param.value = query[param.name];
+        }
+      }
     }
   }
 
@@ -119,16 +145,22 @@ export class RequestData {
     return this.params(InType.BODY).length > 0;
   }
 
+  public containForm(): boolean {
+    return this.params(InType.FORM_DATA).length > 0;
+  }
+
   public params(...inTypes: InType[]): Array<Parameter> {
     return this.parameters?.filter(param => (inTypes || []).includes(param.in)) || [];
   }
 
   /**
    * hashId避免添加相同的历史记录
+   * 同一天同样的请求不做记录
    */
   public hashId() {
-    this.timestamp = new Date().getTime();
-    const str = (this.host || "") + this.url + this.type;
+    const date = new Date();
+    this.timestamp = date.getTime();
+    const str = this.type + this.fullURL() + this.header + this.bodyStr + date.toLocaleDateString();
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;
@@ -138,11 +170,13 @@ export class RequestData {
   }
 
   public fullURL(): string {
-    return (this.host || "") + this.query;
+    return (this.host || "") + this.url;
   }
 
   /**
    * 生成requestBody样例
+   *
+   * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
    */
   public bodyExample() {
     let bodyExample;
@@ -162,7 +196,35 @@ export class RequestData {
   }
 
   /**
+   * 检查参数
+   */
+  public checkParam(): string {
+    let msg = "";
+    const blankParams: string[] = [];
+    for (const param of this.params(InType.QUERY)) {
+      if (param.required && (!param.value || (typeof param.value === "string" && isBlank(param.value)))) {
+        // msg += param.name + " is required\r\n";
+        blankParams.push(param.name);
+      }
+    }
+    if (blankParams.length > 0) {
+      msg = "参数: " + blankParams.join(", ") + "不能为空";
+    }
+    return msg;
+  }
+
+  /**
+   * path
+   */
+  public path(): string {
+    const indexOf = this.url.indexOf("?");
+    return indexOf > 0 ? this.url.substring(0, indexOf) : this.url;
+  }
+
+  /**
    * 生成schema样例
+   *
+   * @param schema
    */
   private bodyJSONExample(schema: Schema) {
     const type: string = schema.type;
@@ -248,4 +310,33 @@ export enum FileType {
   NONE = "none",
   FILE = "file",
   FILES = "files"
+}
+
+/**
+ * INPUT ?name1=value1&name2=value2&name2=value3&name3=&name4
+ * OUTPUT { name1: "value1", name2: ["value2","value3"], name3: "", name4: null }
+ *
+ * @param queryString
+ */
+function parseQuery(queryString: string): { [key: string]: any } {
+  return URI.parseQuery(queryString);
+}
+
+/**
+ * INPUT [{name: "name1", value: "value1"}, {name: "name2", value: ["value2","value3"]}, {name: "name3",value:""}]
+ * OUTPUT ?name1=value1&name2=value2&name2=value3&name3=
+ *
+ * @param params
+ */
+function buildQuery(params: Parameter[]): string {
+  if (params.length < 1) {
+    return "";
+  }
+
+  const queryObj: { [key: string]: any } = {};
+  params.forEach(param => {
+    queryObj[param.name] = param.value || "";
+  });
+
+  return "?" + URI.buildQuery(queryObj);
 }

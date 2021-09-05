@@ -1,5 +1,6 @@
 import { json, xml } from "vkbeautify";
-import { isHTML, isJSON, isXML } from "@/util/TextUtil";
+import { html } from "js-beautify";
+import { isHTML, isJSON, isXML } from "@/util/Util";
 
 /**
  * 格式化接口
@@ -57,7 +58,7 @@ export class HTMLPrettier implements Prettier {
   }
 
   pretty(): string {
-    return xml(this.value, 4);
+    return html(this.value);
   }
 }
 

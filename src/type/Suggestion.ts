@@ -26,11 +26,16 @@ const header = [
   "If-Range"
 ];
 
+/**
+ * 为header编辑器创建提示
+ *
+ * @param range
+ */
 export function createSuggestions(range: IRange): monaco.languages.CompletionItem[] {
   return header.map(value => createItem(value, range, value + ":"));
 }
 
-function createItem(label: string, range: IRange, insertText?: string) {
+function createItem(label: string, range: IRange, insertText?: string): monaco.languages.CompletionItem {
   return {
     label: label,
     kind: monaco.languages.CompletionItemKind.Field,

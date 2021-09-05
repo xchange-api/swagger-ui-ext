@@ -2,9 +2,20 @@
 <template>
   <div class="api">
     <scroll-bar>
-      <el-tree class="tree" :data="apiThree" @node-click="openInNewTab" @node-contextmenu="showMenu">
+      <el-tree
+        class="aside-tab-content"
+        :data="apiThree"
+        @node-click="openInNewTab"
+        @node-contextmenu="showMenu"
+        node-key="label"
+        :default-expanded-keys="expandedKeys"
+      >
         <div slot-scope="{ node }">
-          <span class="multi-line">{{ node.label }}</span>
+          <span class="multi-line" v-if="node.level === 1">{{ node.label }}</span>
+          <span class="multi-line" v-if="node.level === 2">
+            <span class="method">{{ node.data.reqData.type.toUpperCase() }}</span>
+            {{ node.data.reqData.url }}
+          </span>
         </div>
       </el-tree>
     </scroll-bar>
@@ -16,11 +27,10 @@
 import { Component, Vue } from "vue-property-decorator";
 import { get } from "@/util/Http";
 import Bus from "@/util/Bus";
-import { BusEvent } from "@/type/BusEvent";
 import { RequestData } from "@/type/RequestData";
-import { MenuData, TreeNodeData } from "@/type/ComponentType";
+import { MenuData, TreeNodeData, BusEvent } from "@/type/ComponentType";
 import ContextMenu from "@/components/ContextMenu.vue";
-import { isBlank } from "@/util/TextUtil";
+import { isBlank } from "@/util/Util";
 import ScrollBar from "@/components/ScrollBar.vue";
 
 @Component({
@@ -48,6 +58,8 @@ export default class Api extends Vue {
 
   private menuShow = false;
 
+  private expandedKeys: string[] = [];
+
   created() {
     this.initApiDoc();
   }
@@ -71,15 +83,25 @@ export default class Api extends Vue {
         this.apiDoc = res;
         this.apiDoc2Three();
       })
-      .catch(e => console.error(e));
+      .catch(e => {
+        this.$message.error("无法获取swagger数据");
+        console.error(e);
+      });
   }
 
   /**
    * 处理一级（controller）节点
+   *
+   * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
    */
   private apiDoc2Three() {
     const three: TreeNodeData[] = [];
     const tags = this.apiDoc.tags;
+    if (!tags) {
+      this.$message.error("v2/api-docs无数据, 请检查swagger配置");
+      return;
+    }
+
     for (const tag of tags) {
       const children = this.getChildrenThree(tag.name);
       three.push({ label: tag.name, children: children });
@@ -89,7 +111,9 @@ export default class Api extends Vue {
 
   /**
    * 处理二级（方法）节点
+   *
    * @param tagName controller名称
+   * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
    */
   private getChildrenThree(tagName: string) {
     const children: TreeNodeData[] = [];
@@ -100,7 +124,7 @@ export default class Api extends Vue {
         if (reqInfo.tags.includes(tagName)) {
           const url = (this.apiDoc.basePath === "/" ? "" : this.apiDoc.basePath) + path;
           children.push({
-            label: url,
+            label: reqType + url,
             reqData: new RequestData(reqType, url, reqInfo.parameters, this.apiDoc.definitions, this.apiDoc.host)
           });
         }
@@ -117,6 +141,7 @@ export default class Api extends Vue {
 
   /**
    * 右键菜单
+   *
    * @param e
    * @param data
    * @param node
@@ -131,6 +156,7 @@ export default class Api extends Vue {
 
   /**
    * 右键菜单选择
+   *
    * @param command
    */
   private menuSelect(command: string) {
@@ -154,11 +180,13 @@ export default class Api extends Vue {
 
   /**
    * 搜索
+   *
    * @param value
    */
   private search(value: string) {
     if (isBlank(value)) {
       this.apiThree = this.sourceApiTree;
+      this.expandedKeys = [];
       return;
     }
 
@@ -174,6 +202,7 @@ export default class Api extends Vue {
           }
         }
         if (childNodeList.length > 0) {
+          this.expandedKeys.push(node.label);
           nodeList.push({ label: node.label, children: childNodeList });
         }
       }
@@ -200,8 +229,15 @@ export default class Api extends Vue {
     }
   }
 
-  .tree {
-    height: calc(100vh - 168px);
+  /*请求方法*/
+  .method {
+    border: 1px solid #409eff;
+    border-radius: 2px;
+    display: inline-block;
+    padding: 1px;
+    color: #fff;
+    background-color: #409eff;
+    font-size: 12px;
   }
 }
 </style>

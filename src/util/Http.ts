@@ -1,7 +1,8 @@
 import axios, { AxiosRequestConfig, Method, AxiosResponse } from "axios";
 import { InType, Parameter, RequestData } from "@/type/RequestData";
 import r2curl from "r2curl";
-import { isBlank } from "@/util/TextUtil";
+import { isBlank } from "@/util/Util";
+import URI from "urijs";
 
 export function get(url: string, params: { [key: string]: any }) {
   return new Promise((resolve, reject) => {
@@ -16,8 +17,45 @@ export function get(url: string, params: { [key: string]: any }) {
   });
 }
 
+function disableCache(headers: { [key: string]: string }) {
+  const headerKeys = Object.keys(headers);
+  let containCacheControl = false;
+  for (const headerKey of headerKeys) {
+    if ("cache-control" === headerKey.toLowerCase()) {
+      containCacheControl = true;
+      break;
+    }
+  }
+
+  if (!containCacheControl) {
+    headers["Cache-Control"] = "no-cache";
+  }
+}
+
 function buildRequestConfig(reqData: RequestData, dataType?: string): AxiosRequestConfig {
+  // 构建请求头
   const headers = buildHeader(reqData.header);
+
+  // 默认禁用缓存
+  disableCache(headers);
+
+  // 请求地址处理
+  let reqUrl;
+  const host = window.location.host;
+  const parts = URI.parse(reqData.url);
+  const reqHost = parts.hostname + (parts.port ? `:${parts.port}` : "");
+  if (!parts.hostname) {
+    reqUrl = reqData.url;
+  } else if (host !== reqHost) {
+    headers["api-target"] = reqData.url;
+    if (!parts.path) {
+      console.error(`error url: ${reqData.url}`);
+      return {};
+    }
+    reqUrl = "/proxy";
+  }
+
+  // 请求体
   let data = undefined;
   if (dataType === "form") {
     data = buildFormData(reqData.params(InType.FORM_DATA));
@@ -25,16 +63,11 @@ function buildRequestConfig(reqData: RequestData, dataType?: string): AxiosReque
     data = reqData.raw;
   } else if (dataType === "binary") {
     data = reqData.binary;
-    addHeader(headers, "Content-Type", "application/octet-stream");
   }
 
   return {
-    url: reqData.url,
+    url: reqUrl,
     method: reqData.type as Method,
-    params: reqData.params(InType.QUERY).reduce((pre: any, cur) => {
-      pre[cur.name] = cur.value;
-      return pre;
-    }, {}),
     headers: headers,
     data: data,
     responseType: "arraybuffer"
@@ -65,6 +98,7 @@ export function request(reqData: RequestData, dataType?: string): Promise<AxiosR
 
 /**
  * 构建表单
+ *
  * @param parameters
  */
 function buildFormData(parameters: Parameter[]): FormData | undefined {
@@ -87,6 +121,7 @@ function buildFormData(parameters: Parameter[]): FormData | undefined {
 
 /**
  * 构建请求头
+ *
  * @param value
  */
 export function buildHeader(value: string): { [key: string]: string } {
@@ -97,19 +132,12 @@ export function buildHeader(value: string): { [key: string]: string } {
 
   const lines = value.split("\r\n");
   for (const line of lines) {
-    if (!line.includes(":")) {
+    const indexOf = line.indexOf(":");
+    if (indexOf < 1) {
       continue;
     }
-    const kv = line.split(":");
-    header[kv[0]] = kv[1];
+    const key = line.substring(0, indexOf);
+    header[key] = line.substring(indexOf + 1);
   }
   return header;
-}
-
-function addHeader(header: { [key: string]: string }, key: string, value: string) {
-  for (const headerKey in header) {
-    if (headerKey.toLowerCase() === key.toLowerCase() && !header[headerKey].includes(value)) {
-      header[headerKey] = isBlank(header[headerKey]) ? value : header[headerKey] + ";" + value;
-    }
-  }
 }

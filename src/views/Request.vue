@@ -1,18 +1,37 @@
 <template>
   <!--阻止oncontextmenu事件冒泡到tabs组件-->
   <div @contextmenu.stop>
-    <div style="display: flex;">
+    <div class="method-url-container">
+      <!--请求方法 start-->
+      <el-select v-model="reqData.type" :disabled="!reqData.editable" class="request-method">
+        <el-option v-for="item in methodTypes" :key="item.value" :label="item.label" :value="item.value" />
+      </el-select>
+      <!--请求方法 end-->
+
       <!--请求url start-->
-      <el-input placeholder="enter request url" v-model="reqData.query">
-        <template slot="prepend">{{ reqData.type }}</template>
-      </el-input>
+      <el-input
+        class="request-url"
+        placeholder="enter request url"
+        v-model="reqData.query"
+        :disabled="loading"
+        @keyup.enter.native="clickSend"
+      />
       <!--请求url end-->
-      <el-button @click="clickSend" type="primary">send</el-button>
+
+      <!--发送 下载 start-->
+      <el-button-group class="send-btn-group">
+        <el-button @click="clickSend" type="primary" :disabled="loading" icon="">send</el-button>
+        <el-button @click="responseToFile" type="primary" :disabled="loading" icon="el-icon-download" />
+      </el-button-group>
+      <!--发送 下载 end-->
     </div>
     <div>
-      <el-tabs v-model="activeTabName">
+      <el-tabs v-model="activeTabName" v-loading="loading">
         <!--请求头 start-->
         <el-tab-pane label="Header" name="header">
+          <div slot="label">
+            Header<span class="tips">{{ this.headerAmount() }}</span>
+          </div>
           <request-header v-model="reqData.header" class="header-editor">
             <template v-slot:placeholder>
               <span>
@@ -30,7 +49,7 @@
           <el-tabs v-model="reqBodyActiveTabName" type="border-card">
             <!--表单 start-->
             <el-tab-pane label="Form" name="form">
-              <div class="request-body">
+              <div class="request-body-tab-content">
                 <el-checkbox v-model="urlencoded" @change="urlencodedChange()">x-www-form-urlencoded</el-checkbox>
                 <el-table :data="reqData.params('formData')" style="width: 100%">
                   <el-table-column prop="name" label="name" width="180">
@@ -59,13 +78,13 @@
 
             <!--raw start-->
             <el-tab-pane label="Raw" name="raw">
-              <editor :value.sync="reqData.bodyStr" :language="language" class="request-body"></editor>
+              <editor :value.sync="reqData.bodyStr" :language="language" class="request-body-tab-content"></editor>
             </el-tab-pane>
             <!--raw end-->
 
             <!--二进制 start-->
             <el-tab-pane label="Binary" name="binary">
-              <div class="request-body">
+              <div class="request-body-tab-content">
                 <input type="file" @change="selectBinaryFile($event)" />
               </div>
             </el-tab-pane>
@@ -92,8 +111,8 @@
         <!--请求体 end-->
 
         <!--响应 start-->
-        <el-tab-pane label="Response" name="response" :disabled="!response">
-          <response :response="response" :headers="respHeaders"></response>
+        <el-tab-pane label="Response" name="response" :disabled="!respData.data">
+          <response :resp-data="respData" :save-to-file.sync="saveToFile"></response>
         </el-tab-pane>
         <!--响应 end-->
       </el-tabs>
@@ -108,8 +127,10 @@ import Response from "@/views/Response.vue";
 import Editor from "@/components/Editor.vue";
 import { buildHeader, request } from "@/util/Http";
 import Bus from "@/util/Bus";
-import { BusEvent } from "@/type/BusEvent";
+import { BusEvent, OptionData } from "@/type/ComponentType";
 import RequestHeader from "@/views/RequestHeader.vue";
+import { isBlank } from "@/util/Util";
+import { ResponseData } from "@/type/ResponseData";
 
 @Component({
   components: { RequestHeader, Response, Editor }
@@ -122,38 +143,96 @@ export default class Request extends Vue {
 
   private reqBodyActiveTabName = "form";
 
+  /**
+   * 请求体编辑器语言类型
+   */
   private language = "json";
 
-  private response: any = "";
-
-  private respHeaders: any = "";
+  /**
+   * 响应的信息
+   */
+  private respData = ResponseData.DEFAULT();
 
   private urlencoded = false;
 
   private contentType = "application/json";
 
-  private contentTypes = [
+  /**
+   * 请求体类型
+   */
+  private contentTypes: OptionData[] = [
     { value: "json", label: "application/json" },
     { value: "xml", label: "application/xml" },
     { value: "xml", label: "text/xml" },
     { value: "plaintext", label: "text/plain" }
   ];
 
+  private loading = false;
+
+  /**
+   * 请求方法
+   */
+  private methodTypes: OptionData[] = [
+    { value: "get", label: "GET" },
+    { value: "post", label: "POST" },
+    { value: "put", label: "PUT" },
+    { value: "delete", label: "DELETE" },
+    { value: "patch", label: "PATCH" },
+    { value: "head", label: "HEAD" },
+    { value: "options", label: "OPTIONS" }
+  ];
+
+  private saveToFile = false;
+
+  created() {
+    this.switchDefaultTab();
+  }
+
+  /**
+   * 切换默认tab
+   */
+  private switchDefaultTab() {
+    if (this.reqData.containBody()) {
+      this.activeTabName = "body";
+      this.reqBodyActiveTabName = "raw";
+    } else if (this.reqData.containForm()) {
+      this.activeTabName = "body";
+      this.reqBodyActiveTabName = "form";
+    } else if (this.reqData.supportBody()) {
+      this.activeTabName = "body";
+    }
+  }
+
   private clickSend() {
+    const checkParam = this.reqData.checkParam();
+    if (!isBlank(checkParam)) {
+      this.$message.warning(checkParam);
+      return;
+    }
+
+    if (isBlank(this.reqData.url)) {
+      this.$message.warning("url不能为空");
+      return;
+    }
+
+    this.loading = true;
+
     request(this.reqData, this.reqBodyActiveTabName)
       .then(res => {
-        this.respHeaders = res.headers;
-        this.response = res.data;
+        this.loading = false;
+        this.respData = res;
         this.activeTabName = "response";
         this.reqData.hashId();
         this.addHistory();
       })
       .catch(err => {
+        this.loading = false;
         if (err.response) {
           this.$message.error("http status: " + err.response.status);
-          this.response = err.response.data;
-          this.respHeaders = err.response.headers;
+          this.respData = err.response;
           this.activeTabName = "response";
+          this.reqData.hashId();
+          this.addHistory();
         } else if (err.request) {
           // The request was made but no response was received
           this.$message.error(err.request);
@@ -164,16 +243,27 @@ export default class Request extends Vue {
       });
   }
 
+  /**
+   * 添加历史记录
+   */
   private addHistory() {
     Bus.$emit(BusEvent.ADD_HISTORY, this.reqData);
   }
 
+  /**
+   * 表单文件 multipart/form-data
+   */
   private selectFile(param: Parameter, event: any) {
     param.value = event.target.files;
+    this.setRequestHeader("Content-Type", "multipart/form-data");
   }
 
+  /**
+   * 请求体使用application/octet-stream
+   */
   private selectBinaryFile(event: any) {
     this.reqData.binary = event.target.files[0];
+    this.setRequestHeader("Content-Type", "application/octet-stream");
   }
 
   /**
@@ -190,18 +280,78 @@ export default class Request extends Vue {
     this.reqData.header = Array.from(headerMap.entries(), ([k, v]) => `${k}:${v}`).join("\r\n");
   }
 
-  private changeContentType(type: any) {
+  /**
+   * 修改请求内容类型
+   */
+  private changeContentType(type: OptionData) {
     this.contentType = type.label;
     this.language = type.value;
+    this.setRequestHeader("Content-Type", type.label);
+  }
+
+  /**
+   * 设置http请求头
+   *
+   * @param name
+   * @param value
+   */
+  private setRequestHeader(name: string, value: string) {
+    this.reqData.header = this.reqData.header || "";
+    const headerMap = new Map<string, string>(Object.entries(buildHeader(this.reqData.header)));
+    headerMap.set(name, value);
+    this.reqData.header = Array.from(headerMap.entries(), ([k, v]) => `${k}:${v}`).join("\r\n");
+  }
+
+  /**
+   * 判断请求头数量
+   */
+  private headerAmount(): string {
+    if (!this.reqData.header) {
+      return "";
+    }
+    const header = buildHeader(this.reqData.header);
+    if (!header) {
+      return "";
+    }
+    const length = Object.keys(header).length;
+    return length > 0 ? `(${length})` : "";
+  }
+
+  /**
+   * response下载到文件
+   */
+  private responseToFile() {
+    this.saveToFile = true;
+    this.clickSend();
   }
 }
 </script>
 
 <style lang="scss" scoped>
+/*请求方法 url 发送按钮 下载按钮*/
+.method-url-container {
+  display: flex;
+  .request-method {
+    width: 125px;
+  }
+  .request-url {
+    width: calc(100% - 153px);
+  }
+  .send-btn-group {
+    width: 153px;
+    button {
+      height: 39.6px;
+    }
+  }
+}
+
+/*header个数提示*/
+.tips {
+  font-size: 10px;
+}
+
+/*请求头组件高度*/
 .header-editor {
   height: calc(100vh - 246px);
-}
-.request-body {
-  height: calc(100vh - 317px);
 }
 </style>

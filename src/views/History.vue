@@ -1,17 +1,33 @@
 <template>
   <div class="history">
     <scroll-bar>
-      <ul>
-        <li
-          v-for="item in history"
-          :key="item.id"
-          @click="openInNewTab(item)"
-          @contextmenu.prevent="showMenu($event, item)"
-        >
-          <span class="multi-line">{{ item.url }}</span>
-        </li>
-      </ul>
+      <el-checkbox-group v-model="checkHistoryId">
+        <ul ref="ulContainer" class="aside-tab-content">
+          <li v-for="item in history" :key="item.id">
+            <!--时间线 start-->
+            <el-divider content-position="left" v-if="showTime(item)">
+              {{ new Date(item.timestamp).toLocaleDateString() }}
+            </el-divider>
+            <!--时间线 end-->
+            <div @contextmenu.prevent="showMenu($event, item)">
+              <el-checkbox :label="item.id" v-show="selectModel" class="opt-checkbox" />
+              <span class="multi-line" @click="openInNewTab(item)">
+                {{ item.url }}
+              </span>
+            </div>
+          </li>
+        </ul>
+      </el-checkbox-group>
     </scroll-bar>
+
+    <!--底部操作按钮 start-->
+    <div class="btn-bottom">
+      <el-button type="text" @click="selectAll" v-show="selectModel">全选</el-button>
+      <el-button type="text" @click="bulkRemove" v-show="selectModel">删除</el-button>
+      <el-button type="text" @click="quitSelectModel" v-show="selectModel">退出</el-button>
+    </div>
+    <!--底部操作按钮 end-->
+
     <context-menu :data="menuData" :show.sync="menuShow" @select="menuSelect" />
   </div>
 </template>
@@ -20,11 +36,10 @@
 import { Component, Vue } from "vue-property-decorator";
 import { RequestData } from "@/type/RequestData";
 import Bus from "@/util/Bus";
-import { BusEvent } from "@/type/BusEvent";
 import historyDB from "@/api/HistoryDB";
 import ContextMenu from "@/components/ContextMenu.vue";
-import { MenuData } from "@/type/ComponentType";
-import { isBlank } from "@/util/TextUtil";
+import { MenuData, BusEvent } from "@/type/ComponentType";
+import { isBlank } from "@/util/Util";
 import ScrollBar from "@/components/ScrollBar.vue";
 
 @Component({
@@ -44,12 +59,19 @@ export default class History extends Vue {
     items: [
       { command: "openInCurrentTab", text: "当前标签打开" },
       { command: "openInBackgroundTab", text: "后台打开" },
-      { command: "deleteHistory", text: "删除历史" }
+      { command: "deleteHistory", text: "删除历史" },
+      { command: "gotoSelectModel", text: "选择模式" }
     ],
     position: { top: "0px", left: "0px" }
   };
 
   private menuShow = false;
+
+  private selectModel = false;
+
+  private checkHistoryId: number[] = [];
+
+  private beforeTime!: number;
 
   created() {
     this.initHistory();
@@ -59,7 +81,7 @@ export default class History extends Vue {
 
   private initHistory() {
     historyDB.all().then((history: Array<RequestData>) => {
-      this.sourceHistory = this.history = history;
+      this.sourceHistory = this.history = history.sort((a, b) => b.timestamp - a.timestamp);
     });
   }
 
@@ -77,6 +99,7 @@ export default class History extends Vue {
 
   /**
    * 新窗口打开
+   *
    * @param reqData
    */
   private openInNewTab(reqData: RequestData) {
@@ -96,6 +119,56 @@ export default class History extends Vue {
     this.initHistory();
   }
 
+  private gotoSelectModel() {
+    if (this.selectModel) {
+      this.quitSelectModel();
+    } else {
+      const element = this.$refs.ulContainer as HTMLElement;
+      if (element) {
+        element.setAttribute("style", "height: calc(100vh - 189px);");
+        this.selectModel = true;
+      }
+    }
+  }
+
+  private quitSelectModel() {
+    const element = this.$refs.ulContainer as HTMLElement;
+    if (element) {
+      element.removeAttribute("style");
+      this.selectModel = false;
+    }
+  }
+
+  private selectAll() {
+    this.checkHistoryId = this.history.map(h => h.id);
+  }
+
+  private bulkRemove() {
+    if (this.checkHistoryId?.length < 1) {
+      this.$message.warning("请选择要删除的历史记录");
+      return;
+    }
+    historyDB.bulkRemove(this.checkHistoryId);
+    this.initHistory();
+    this.quitSelectModel();
+  }
+
+  private showTime(reqData: RequestData): boolean {
+    if (!this.beforeTime) {
+      this.beforeTime = reqData.timestamp;
+      return true;
+    } else {
+      const beforeDate = new Date(this.beforeTime);
+      const date = new Date(reqData.timestamp);
+      if (beforeDate.getMonth() !== date.getMonth() || beforeDate.getDate() !== date.getDate()) {
+        this.beforeTime = reqData.timestamp;
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
   private menuSelect(command: string) {
     switch (command) {
       case "openInCurrentTab":
@@ -107,9 +180,17 @@ export default class History extends Vue {
       case "deleteHistory":
         this.deleteHistory(this.reqData);
         break;
+      case "gotoSelectModel":
+        this.gotoSelectModel();
+        break;
     }
   }
 
+  /**
+   * 搜索历史记录
+   *
+   * @param value
+   */
   private search(value: string) {
     if (isBlank(value)) {
       this.history = this.sourceHistory;
@@ -125,7 +206,6 @@ export default class History extends Vue {
   ul {
     padding-left: 10px;
     margin: 0;
-    height: calc(100vh - 168px);
   }
   ul li {
     list-style: none;
@@ -139,9 +219,25 @@ export default class History extends Vue {
       overflow: hidden;
       height: auto;
     }
+
+    /* 勾选框 */
+    .opt-checkbox {
+      margin-left: 5px;
+      /deep/ .el-checkbox__label {
+        display: none;
+      }
+    }
+
+    span:hover {
+      background-color: #f5f7fa;
+    }
   }
-  ul li:hover {
-    background-color: #f5f7fa;
+
+  /* 底部操作按钮 */
+  .btn-bottom {
+    /deep/ button {
+      padding: 0;
+    }
   }
 }
 </style>

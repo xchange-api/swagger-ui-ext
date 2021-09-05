@@ -1,5 +1,6 @@
 <template>
   <div v-show="show" class="menu" :style="{ ...data.position }" @mousedown.stop>
+    <!--有命令的菜单-->
     <table v-if="tipsExist()">
       <tr v-for="item in data.items" :key="item.text" @click="notify(item.command)">
         <td>{{ item.text }}</td>
@@ -7,6 +8,7 @@
       </tr>
     </table>
 
+    <!--没有命令的菜单-->
     <table v-else>
       <tr v-for="item in data.items" :key="item.text" @click="notify(item.command)">
         <td>{{ item.text }}</td>
@@ -29,6 +31,11 @@ export default class ContextMenu extends Vue {
   @Prop()
   private show!: boolean;
 
+  /**
+   * 发送命令
+   *
+   * @param command
+   */
   private notify(command: string) {
     this.$emit("select", command);
     this.hideMenu();
@@ -43,10 +50,16 @@ export default class ContextMenu extends Vue {
     }
   }
 
+  /**
+   * 隐藏菜单
+   */
   private hideMenu() {
     this.$emit("update:show", false);
   }
 
+  /**
+   * 判断是否有命令列
+   */
   private tipsExist(): boolean {
     return this.data.items.find(item => item.tips !== undefined) !== undefined;
   }

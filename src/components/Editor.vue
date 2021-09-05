@@ -54,7 +54,7 @@ export default class Editor extends Vue {
       contextMenuGroupId: "1_modification",
       contextMenuOrder: 5,
       keybindings: [monaco.KeyCode.F11],
-      run: editor => {
+      run: () => {
         this.fullscreen = !this.fullscreen;
       }
     });
